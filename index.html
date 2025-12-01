@@ -1,72 +1,498 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Stand By Me - Bottle Stand Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: #f5f5f5;
-        }
-        #game-area {
-            width: 300px;
-            height: 500px;
-            background: #fff;
-            border: 2px solid #ccc;
-            margin: 0 auto;
-            position: relative;
-            overflow: hidden;
-        }
-        #rope {
-            width: 4px;
-            height: 200px;
-            background: black;
-            position: absolute;
-            top: 0;
-            left: 148px;
-        }
-        #ring {
-            width: 40px;
-            height: 40px;
-            border: 4px solid red;
-            border-radius: 50%;
-            position: absolute;
-            top: 180px;
-            left: 130px;
-        }
-        #bottle {
-            width: 40px;
-            height: 80px;
-            background: green;
-            position: absolute;
-            bottom: 20px;
-            left: 130px;
-            border-radius: 8px;
-        }
-        #restart-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-    </style>
+<meta charset="utf-8" />
+<title>Stand By Me — Night Market Bottle Stand Game</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#0b1220;
+    --panel:#0f1724;
+    --accent:#f97316;
+    --glass:#60a5fa;
+    --lantern:#fde68a;
+    --ui:#e6edf3;
+  }
+  html,body{height:100%;margin:0;}
+  body{
+    background: linear-gradient(180deg,#021028 0%, #071428 60%, #0b1220 100%);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color:var(--ui);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+
+  .container{
+    width:360px;
+    max-width:92vw;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border-radius:14px;
+    box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+    padding:14px;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  header{display:flex;align-items:center;gap:10px;}
+  .title{font-weight:700;font-size:18px;color:var(--lantern);}
+  .subtitle{font-size:12px;color:#9fb4c8;margin-top:4px;}
+
+  .stage{
+    width:100%;
+    height:520px;
+    background: radial-gradient(circle at 20% 10%, rgba(253,230,138,0.06), transparent 8%),
+                linear-gradient(180deg, rgba(255,255,255,0.02), transparent 60%);
+    border-radius:10px;
+    margin-top:12px;
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.02);
+  }
+
+  /* ceiling lanterns */
+  .lantern{
+    position:absolute;
+    width:22px;height:32px;border-radius:50%;
+    background:var(--lantern); left:50%; transform:translateX(-50%); top:10px;
+    box-shadow: 0 6px 18px rgba(253,230,138,0.12);
+    opacity:0.95;
+  }
+  .lantern.left{ left:22%; }
+  .lantern.right{ left:78%; }
+
+  /* anchor point */
+  .anchor{
+    position:absolute; left:50%; top:40px; transform:translateX(-50%);
+    width:6px;height:6px;background:#f8fafc;border-radius:50%; z-index:5;
+    box-shadow:0 0 8px rgba(255,255,255,0.08);
+  }
+
+  /* the rope (SVG line will draw it) */
+
+  /* ring */
+  .ring{
+    position:absolute;
+    width:56px;height:56px;border-radius:50%;
+    border:6px solid rgba(249,115,22,0.95);
+    box-sizing:border-box;
+    transform-origin:center center;
+    touch-action:none;
+    z-index:8;
+    background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.02), transparent 35%);
+  }
+
+  /* bottle */
+  .bottle{
+    position:absolute; width:56px;height:120px;
+    left:64%; bottom:22px;
+    transform-origin: 50% 92%;
+    z-index:6;
+    pointer-events:none;
+  }
+  .bottle-body{
+    width:100%; height:100%; border-radius:12px;
+    background: linear-gradient(180deg, #9ed0ff 0%, #60a5fa 60%);
+    box-shadow: inset 0 -12px 24px rgba(0,0,0,0.12), 0 6px 18px rgba(0,0,0,0.25);
+    position:relative;
+    overflow:visible;
+  }
+  .bottle-neck{
+    position:absolute; width:24px;height:36px; left:50%; transform:translateX(-50%); top:-14px;
+    background:#fde68a;border-radius:6px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  /* ground */
+  .ground{
+    position:absolute; left:0; right:0; bottom:0; height:36px;
+    background: linear-gradient(180deg,#091024,#071024);
+    box-shadow: inset 0 6px 18px rgba(0,0,0,0.35);
+    z-index:3;
+  }
+
+  .hud{
+    display:flex;justify-content:space-between;align-items:center;margin-top:10px;
+    gap:8px;
+  }
+  .btn{
+    background: linear-gradient(180deg,#1f2937,#111827);
+    color:var(--ui); border:1px solid rgba(255,255,255,0.03);
+    padding:8px 12px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;
+  }
+  .info{font-size:13px;color:#c7dde8;}
+
+  .message{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    background:linear-gradient(180deg, rgba(15,23,42,0.9), rgba(10,16,26,0.9));
+    padding:16px 20px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);
+    display:none; z-index:30; text-align:center;
+  }
+  .message.show{display:block;}
+  .message h2{margin:0 0 6px 0;color:var(--lantern);}
+  .small{font-size:13px;color:#b9d0e0;margin-top:6px;}
+  footer{margin-top:10px;font-size:12px;color:#93b3c9;text-align:center;}
+  @media (max-width:420px){
+    .stage{height:72vw;}
+  }
+</style>
 </head>
 <body>
-    <h1>Stand By Me</h1>
-    <p>Inspired by Taiwan night market “stand the bottle” game</p>
+<div class="container" role="application" aria-label="Stand By Me bottle game">
+  <header>
+    <div>
+      <div class="title">Stand By Me — 夜市立瓶</div>
+      <div class="subtitle">Drag the ring, swing it, hook the bottle neck and stand it up.</div>
+    </div>
+    <div style="margin-left:auto" aria-hidden="true">
+      <div style="font-weight:700; color:#bde2ff">台灣夜市風 • 玩一把？</div>
+    </div>
+  </header>
 
-    <div id="game-area">
-        <div id="rope"></div>
-        <div id="ring"></div>
-        <div id="bottle"></div>
+  <div class="stage" id="stage">
+    <div class="lantern left" style="top:18px; left:18%;"></div>
+    <div class="lantern" style="top:18px; left:50%;"></div>
+    <div class="lantern right" style="top:18px; left:82%;"></div>
+
+    <div class="anchor" id="anchor" title="rope anchor"></div>
+
+    <!-- Rope drawn by SVG for smooth line -->
+    <svg id="ropeSvg" width="100%" height="100%" style="position:absolute;left:0;top:0;pointer-events:none;z-index:4;">
+      <line id="ropeLine" x1="0" y1="0" x2="0" y2="0" stroke="rgba(255,255,255,0.12)" stroke-width="4" stroke-linecap="round" />
+    </svg>
+
+    <div id="ring" class="ring" role="button" aria-label="ring"> </div>
+
+    <div id="bottle" class="bottle" aria-hidden="false">
+      <div class="bottle-body">
+        <div class="bottle-neck"></div>
+      </div>
     </div>
 
-    <button id="restart-btn">Restart</button>
+    <div class="ground" aria-hidden="true"></div>
 
-    <script>
-        document.getElementById("restart-btn").addEventListener("click", () => {
-            alert("Game restart placeholder — you can expand logic later!");
-        });
-    </script>
+    <div class="message" id="message" aria-live="polite">
+      <h2 id="msgTitle">You did it!</h2>
+      <div class="small" id="msgText">The bottle stood up — nice throw.</div>
+    </div>
+  </div>
+
+  <div class="hud" style="margin-top:12px">
+    <div class="info">Attempts: <span id="attempts">0</span></div>
+    <div style="display:flex;gap:8px;">
+      <button id="restartBtn" class="btn" aria-label="Restart">Restart</button>
+      <button id="helpBtn" class="btn" aria-label="How to play">How to play</button>
+    </div>
+  </div>
+
+  <footer>Touch or click ring → drag → release to swing • Mobile ready</footer>
+</div>
+
+<script>
+/* ========= GAME LOGIC =========
+ - Pendulum rope with anchor point.
+ - User drags ring (touch/mouse). Release to swing (pendulum physics).
+ - When ring nears bottle neck and has some vertical pull, bottle angle reduces (stands).
+ - When bottle angle <= threshold, display success.
+ - Simple sounds via WebAudio.
+*/
+
+(() => {
+  const stage = document.getElementById('stage');
+  const ringEl = document.getElementById('ring');
+  const bottleEl = document.getElementById('bottle');
+  const ropeLine = document.getElementById('ropeLine');
+  const anchorEl = document.getElementById('anchor');
+  const message = document.getElementById('message');
+  const msgTitle = document.getElementById('msgTitle');
+  const msgText = document.getElementById('msgText');
+  const attemptsEl = document.getElementById('attempts');
+  const restartBtn = document.getElementById('restartBtn');
+  const helpBtn = document.getElementById('helpBtn');
+
+  // sizes & coordinates
+  const stageRect = stage.getBoundingClientRect();
+  let stageW = stageRect.width;
+  let stageH = stageRect.height;
+
+  // anchor position (where rope is tied). We'll take the DOM anchor center.
+  function anchorPos() {
+    const r = anchorEl.getBoundingClientRect();
+    return { x: r.left + r.width/2 - stage.getBoundingClientRect().left, y: r.top + r.height/2 - stage.getBoundingClientRect().top };
+  }
+
+  // bottle pivot & neck positions relative to stage
+  function bottlePivot() {
+    const r = bottleEl.getBoundingClientRect();
+    return {
+      x: r.left + r.width/2 - stage.getBoundingClientRect().left,
+      y: r.top + r.height*0.92 - stage.getBoundingClientRect().top
+    };
+  }
+  function bottleNeck() {
+    const r = bottleEl.getBoundingClientRect();
+    return {
+      x: r.left + r.width/2 - stage.getBoundingClientRect().left,
+      y: r.top + r.height*0.12 - stage.getBoundingClientRect().top
+    };
+  }
+
+  // pendulum state
+  let anchor = anchorPos();
+  let length = Math.min(stageH * 0.55, 240); // rope length
+  let angle = Math.PI / 2 * 0.9; // initial angle (to right)
+  let angularVelocity = 0;
+  let angularAccel = 0;
+  let gravity = 0.8;
+  let damping = 0.995;
+  let dragging = false;
+
+  // ring visual size
+  const ringRadius = 28; // px half of width
+
+  // bottle state (angle degrees). 90 deg = lying flat, 0 = standing upright.
+  let bottleAngle = 90; // degrees
+  const bottleStandThreshold = 10; // degrees threshold for success
+  let attempts = 0;
+  let won = false;
+
+  // web audio for simple fx
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function beep(freq, time=0.05, vol=0.05){
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.value = vol;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + time);
+  }
+
+  // initial placement
+  function placeInitial() {
+    // anchor recompute
+    anchor = anchorPos();
+    // ring position computed from angle
+    updateRingFromAngle();
+    // bottle initial transform (lying)
+    bottleAngle = 90;
+    bottleEl.style.transform = `translateX(-50%) rotate(${ -bottleAngle }deg)`;
+    attempts = 0;
+    attemptsEl.textContent = attempts;
+    hideMessage();
+    won = false;
+  }
+
+  function updateRingFromAngle(){
+    const x = anchor.x + Math.sin(angle) * length;
+    const y = anchor.y + Math.cos(angle) * length;
+    ringEl.style.left = `${x - ringRadius}px`;
+    ringEl.style.top = `${y - ringRadius}px`;
+    // draw rope
+    ropeLine.setAttribute('x1', anchor.x);
+    ropeLine.setAttribute('y1', anchor.y);
+    ropeLine.setAttribute('x2', x);
+    ropeLine.setAttribute('y2', y);
+  }
+
+  // drag controls
+  function stageCoordsFromEvent(ev){
+    const rect = stage.getBoundingClientRect();
+    let clientX, clientY;
+    if (ev.touches && ev.touches.length) { clientX = ev.touches[0].clientX; clientY = ev.touches[0].clientY; }
+    else { clientX = ev.clientX; clientY = ev.clientY; }
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  function onPointerDown(e){
+    e.preventDefault();
+    // allow audio resume for mobile
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const pos = stageCoordsFromEvent(e);
+    const rx = anchor.x + Math.sin(angle) * length;
+    const ry = anchor.y + Math.cos(angle) * length;
+    const dist = Math.hypot(pos.x - rx, pos.y - ry);
+    if (dist <= ringRadius + 12){ // hit ring
+      dragging = true;
+      angularVelocity = 0;
+      ringEl.style.transition = 'none';
+    }
+  }
+  function onPointerMove(e){
+    if (!dragging) return;
+    const pos = stageCoordsFromEvent(e);
+    // compute angle from anchor to pos (constrained by min/max)
+    const dx = pos.x - anchor.x;
+    const dy = pos.y - anchor.y;
+    let ang = Math.atan2(dx, dy); // note swapped for pendulum convenience
+    // limit angle so user can't wrap around too much
+    const max = Math.PI * 0.85;
+    ang = Math.max(-max, Math.min(max, ang));
+    angle = ang;
+    updateRingFromAngle();
+    // small swing sound while dragging (throttle)
+  }
+  function onPointerUp(e){
+    if (!dragging) return;
+    dragging = false;
+    // compute angularVelocity from last pointer movement by difference between ring pos and angle
+    // we'll approximate by checking where the pointer was relative to anchor and set velocity by horizontal offset
+    const pos = stageCoordsFromEvent(e);
+    const dx = pos.x - anchor.x;
+    // impart some angular velocity proportional to horizontal swipe speed (approx)
+    angularVelocity = dx * 0.006;
+    // cap
+    angularVelocity = Math.max(-1.8, Math.min(1.8, angularVelocity));
+    attempts++;
+    attemptsEl.textContent = attempts;
+    // small swing sound triggered on release
+    beep(180 + Math.abs(angularVelocity)*120, 0.06, 0.03);
+  }
+
+  // collision / hook detection & bottle standing mechanic
+  function checkHookAndLift(){
+    if (won) return;
+    const rx = anchor.x + Math.sin(angle) * length;
+    const ry = anchor.y + Math.cos(angle) * length;
+    const neck = bottleNeck();
+    const dx = rx - neck.x;
+    const dy = ry - neck.y;
+    const dist = Math.hypot(dx, dy);
+
+    // If ring is very near the neck and the ring moves downward relative to the neck, apply lift
+    const verticalPull = (ry - neck.y) * -1; // positive when ring is above neck pulling up
+    const relativeDownVelocity = -angularVelocity * Math.cos(angle); // approx
+
+    // hooking condition
+    if (dist < 36 && verticalPull > -18) {
+      // we are close enough to hook — apply pulling torque to reduce bottleAngle
+      // strength depends on ring's vertical position and angular velocity
+      const pullStrength = Math.max(0.5, Math.min(5, (20 + verticalPull) * 0.05 + Math.abs(angularVelocity)*2 ));
+      // reduce bottle angle gradually
+      bottleAngle -= pullStrength * 0.6;
+      bottleAngle = Math.max(0, bottleAngle);
+      // visual nudge on ring (small vibration)
+      ringEl.style.transform = `scale(1.02)`;
+      // hook sound
+      if (Math.random() < 0.06) beep(900, 0.03, 0.03);
+    } else {
+      // ring not hooked, allow normal slight settle
+      ringEl.style.transform = 'scale(1)';
+      // bottle can slowly tilt back if not fully hooked
+      if (bottleAngle < 90 && bottleAngle > 0) {
+        bottleAngle += 0.12; // slight fall-back if you stop pulling
+        bottleAngle = Math.min(90, bottleAngle);
+      }
+    }
+
+    // Check win
+    if (bottleAngle <= bottleStandThreshold) {
+      bottleAngle = 0;
+      win();
+    }
+    // apply bottle visual transform
+    bottleEl.style.transform = `translateX(-50%) rotate(${-bottleAngle}deg)`;
+  }
+
+  // win handling
+  function win(){
+    if (won) return;
+    won = true;
+    beep(880, 0.14, 0.06);
+    setTimeout(()=>{ beep(660, 0.12, 0.04); }, 120);
+    showMessage('You did it!', `Attempts: ${attempts}`);
+  }
+
+  // message UI
+  function showMessage(title, text){
+    msgTitle.textContent = title;
+    msgText.textContent = text;
+    message.classList.add('show');
+  }
+  function hideMessage(){
+    message.classList.remove('show');
+  }
+
+  // main physics loop (pendulum)
+  function step(){
+    if (!dragging){
+      // simple pendulum physics: angular acceleration = -(g/L) * sin(angle)
+      angularAccel = (-gravity / length) * Math.sin(angle);
+      angularVelocity += angularAccel;
+      angularVelocity *= damping;
+      angle += angularVelocity;
+    } else {
+      // while dragging, no physics integration other than what user sets
+      angularVelocity *= 0.9;
+    }
+
+    // update ring pos
+    updateRingFromAngle();
+
+    // subtle lamp parallax based on ring swing (visual)
+    const lanterns = document.querySelectorAll('.lantern');
+    lanterns.forEach((el,i)=>{
+      el.style.transform = `translateX(${Math.sin(angle+ i)*6}px)`;
+      el.style.filter = `blur(${Math.abs(Math.sin(angle+i))*0.6}px)`;
+    });
+
+    // hook check
+    checkHookAndLift();
+
+    // reset small ring scale smoothly
+    ringEl.style.transition = dragging ? 'none' : 'transform 180ms ease-out';
+
+    requestAnimationFrame(step);
+  }
+
+  // restart
+  function restartGame(){
+    attempts = 0;
+    attemptsEl.textContent = attempts;
+    bottleAngle = 90;
+    bottleEl.style.transform = `translateX(-50%) rotate(${-bottleAngle}deg)`;
+    angle = Math.PI/2*0.9;
+    angularVelocity = 0;
+    hideMessage();
+    won = false;
+    beep(300, 0.04, 0.03);
+  }
+
+  // help
+  function showHelp(){
+    showMessage('How to play', 'Touch/click the ring, drag to pull it, then release to swing. Hook the bottle neck and pull it upright. Good luck!');
+  }
+
+  // event wiring
+  stage.addEventListener('mousedown', onPointerDown);
+  stage.addEventListener('touchstart', onPointerDown, {passive:false});
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('touchmove', onPointerMove, {passive:false});
+  window.addEventListener('mouseup', onPointerUp);
+  window.addEventListener('touchend', onPointerUp);
+
+  restartBtn.addEventListener('click', restartGame);
+  helpBtn.addEventListener('click', showHelp);
+
+  // responsive: recalc on resize
+  function onResize(){
+    const r = stage.getBoundingClientRect();
+    stageW = r.width; stageH = r.height;
+    anchor = anchorPos();
+    length = Math.min(stageH * 0.55, 240);
+    updateRingFromAngle();
+  }
+  window.addEventListener('resize', onResize);
+
+  // init
+  placeInitial();
+  requestAnimationFrame(step);
+
+  // expose some debug hooks (optional)
+  window.__game = { restart: restartGame };
+})();
+</script>
 </body>
 </html>

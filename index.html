@@ -2,186 +2,169 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Stand By Me - Bottle Stand Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stand the Bottle</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        background: #f5f5f5;
-        user-select: none;
-    }
-    h1 {
-        margin-top: 10px;
-    }
-    #game-area {
-        width: 320px;
-        height: 520px;
-        background: white;
-        border: 3px solid #ccc;
-        margin: 0 auto;
-        margin-top: 20px;
-        position: relative;
-        overflow: hidden;
-        border-radius: 10px;
-    }
-
-    /* Rope & Ring */
-    #rope {
-        width: 4px;
-        height: 200px;
-        background: black;
-        position: absolute;
-        top: 0;
-        left: 158px;
-        transform-origin: top;
-    }
-    #ring {
-        width: 45px;
-        height: 45px;
-        border: 5px solid red;
-        border-radius: 50%;
-        position: absolute;
-        top: 180px;
-        left: 135px;
-        pointer-events: none;
-        transform-origin: center;
-    }
-
-    /* Bottle */
-    #bottle {
-        width: 45px;
-        height: 90px;
-        background: linear-gradient(#4caf50, #2d7b2f);
-        position: absolute;
-        bottom: 20px;
-        left: 137px;
-        border-radius: 10px 10px 5px 5px;
-        transition: transform 1s ease;
-    }
-
-    #message {
-        font-size: 20px;
-        font-weight: bold;
-        margin-top: 15px;
-        color: green;
-        height: 30px;
-    }
-
-    #restart-btn {
-        margin-top: 15px;
-        padding: 10px 20px;
-        border: none;
-        background: #2196f3;
-        color: white;
-        border-radius: 6px;
-        font-size: 16px;
-        cursor: pointer;
-    }
+  body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to bottom, #87CEEB, #f0f0f0);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+  h1 {
+    margin-top: 30px;
+    color: #333;
+    font-size: 3em;
+  }
+  #game-container {
+    position: relative;
+    margin: 30px auto;
+    width: 400px;
+    height: 600px;
+    background: #fff;
+    border: 4px solid #333;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  }
+  #bottle {
+    position: absolute;
+    bottom: 20px;
+    left: 180px;
+    width: 40px;
+    height: 100px;
+    background: green;
+    border-radius: 10px;
+  }
+  #ring {
+    position: absolute;
+    top: 50px;
+    left: 170px;
+    width: 60px;
+    height: 60px;
+    border: 5px solid #f00;
+    border-radius: 50%;
+    cursor: grab;
+  }
+  #scoreboard {
+    margin-top: 20px;
+    font-size: 1.2em;
+  }
+  #instructions {
+    width: 80%;
+    margin: 10px auto;
+    font-size: 1em;
+    color: #555;
+  }
+  #play-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  #play-btn:hover {
+    background-color: #218838;
+  }
 </style>
 </head>
 <body>
 
-<h1>Stand By Me</h1>
-<p>Inspired by Taiwan night market “stand the bottle” game</p>
+<h1>Stand the Bottle</h1>
+<div id="instructions">
+  Drag the red ring carefully and try to lift the green bottle without touching the edges!
+</div>
+<button id="play-btn">Play Game</button>
 
-<div id="game-area">
-    <div id="rope"></div>
-    <div id="ring"></div>
-    <div id="bottle"></div>
+<div id="game-container">
+  <div id="bottle"></div>
+  <div id="ring"></div>
 </div>
 
-<div id="message"></div>
-<button id="restart-btn">Restart</button>
+<div id="scoreboard">
+  Score: <span id="score">0</span>
+</div>
 
 <script>
-/* Basic physics + drag controls */
-const rope = document.getElementById("rope");
-const ring = document.getElementById("ring");
-const bottle = document.getElementById("bottle");
-const msg = document.getElementById("message");
+  const ring = document.getElementById('ring');
+  const bottle = document.getElementById('bottle');
+  const scoreEl = document.getElementById('score');
+  const playBtn = document.getElementById('play-btn');
 
-let dragging = false;
-let ropeX = 158;
-let angle = 0;
-let velocity = 0;
-let hooked = false;
+  let score = 0;
+  let isDragging = false;
+  let offsetX, offsetY;
+  let gameActive = false;
 
-/* Drag rope horizontally */
-document.getElementById("game-area").addEventListener("mousedown", () => dragging = true);
-document.addEventListener("mouseup", () => dragging = false);
-document.addEventListener("mousemove", (e) => {
-    if (!dragging) return;
+  function startGame() {
+    score = 0;
+    scoreEl.textContent = score;
+    ring.style.top = '50px';
+    ring.style.left = '170px';
+    bottle.style.bottom = '20px';
+    gameActive = true;
+    playBtn.disabled = true;
+    playBtn.textContent = 'Playing...';
+  }
 
-    let rect = game-area.getBoundingClientRect();
-    ropeX = e.clientX - rect.left;
+  playBtn.addEventListener('click', startGame);
 
-    if (ropeX < 20) ropeX = 20;
-    if (ropeX > 300) ropeX = 300;
-});
+  ring.addEventListener('mousedown', (e) => {
+    if(!gameActive) return;
+    isDragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+  });
 
-/* Mobile dragging */
-document.getElementById("game-area").addEventListener("touchmove", (e)=>{
-    let t = e.touches[0];
-    let rect = game-area.getBoundingClientRect();
-    ropeX = t.clientX - rect.left;
-    if (ropeX < 20) ropeX = 20;
-    if (ropeX > 300) ropeX = 300;
-});
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
 
-/* Main animation loop */
-function animate() {
-    // Rope sway physics
-    velocity += (ropeX - (rope.offsetLeft + 2)) * 0.01;
-    velocity *= 0.95;
-    angle += velocity;
+  document.addEventListener('mousemove', (e) => {
+    if(!isDragging || !gameActive) return;
+    const containerRect = document.getElementById('game-container').getBoundingClientRect();
+    let x = e.clientX - containerRect.left - offsetX;
+    let y = e.clientY - containerRect.top - offsetY;
 
-    rope.style.left = ropeX + "px";
-    rope.style.transform = `rotate(${angle}deg)`;
+    // Keep ring inside game container
+    x = Math.max(0, Math.min(containerRect.width - ring.offsetWidth, x));
+    y = Math.max(0, Math.min(containerRect.height - ring.offsetHeight, y));
 
-    let ringX = ropeX - 23 + Math.sin(angle * Math.PI/180) * 40;
-    let ringY = 180 + Math.cos(angle * Math.PI/180) * 10;
+    ring.style.left = x + 'px';
+    ring.style.top = y + 'px';
 
-    ring.style.left = ringX + "px";
-    ring.style.top = ringY + "px";
+    checkBottleLift();
+  });
 
-    // Bottle position
-    const bottleRect = bottle.getBoundingClientRect();
+  function checkBottleLift() {
     const ringRect = ring.getBoundingClientRect();
+    const bottleRect = bottle.getBoundingClientRect();
 
-    // Collision detection for hooking
-    if (!hooked &&
-        ringRect.bottom > bottleRect.top + 20 &&
-        ringRect.left < bottleRect.right &&
-        ringRect.right > bottleRect.left
-    ) {
-        hooked = true;
-        msg.textContent = "You hooked it! Pull up!";
+    const overlapX = ringRect.left < bottleRect.left + bottleRect.width &&
+                     ringRect.left + ringRect.width > bottleRect.left;
+    const overlapY = ringRect.top < bottleRect.top + bottleRect.height &&
+                     ringRect.top + ringRect.height > bottleRect.top;
+
+    if(overlapX && overlapY) {
+      // Lift bottle gradually
+      let bottleBottom = parseInt(bottle.style.bottom);
+      if(bottleBottom < 400) {
+        bottle.style.bottom = bottleBottom + 5 + 'px';
+        score += 1;
+        scoreEl.textContent = score;
+      } else {
+        // Bottle lifted completely
+        alert('🎉 You lifted the bottle! Your score: ' + score);
+        gameActive = false;
+        playBtn.disabled = false;
+        playBtn.textContent = 'Play Game';
+      }
     }
-
-    // Bottle stands when hooked and rope moves up
-    if (hooked) {
-        bottle.style.transform = "rotate(0deg)";
-        const newBottom = parseFloat(bottle.style.bottom) + 0.4;
-        bottle.style.bottom = newBottom + "px";
-
-        if (newBottom > 120) {
-            msg.textContent = "🎉 You made it stand! Great job!";
-        }
-    }
-
-    requestAnimationFrame(animate);
-}
-animate();
-
-/* Restart button */
-document.getElementById("restart-btn").addEventListener("click", () => {
-    ropeX = 158;
-    angle = 0;
-    velocity = 0;
-    hooked = false;
-    bottle.style.bottom = "20px";
-    msg.textContent = "";
-});
+  }
 </script>
 
 </body>

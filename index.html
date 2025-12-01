@@ -1,468 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stand the Bottle - The Game</title>
-    <style>
-        /* --- CSS STYLES --- */
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #0d0d21; /* Dark background */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: white;
-            overflow: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stand the Bottle - Night Market Game</title>
+<style>
+    /* --- GENERAL STYLES --- */
+    body {
+        margin: 0;
+        font-family: 'Arial', sans-serif;
+        background-color: #1a0d2a; /* Dark night sky */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: #fff;
+        overflow: hidden;
+    }
 
-        .game-container {
-            width: 100%;
-            max-width: 900px;
-            aspect-ratio: 16 / 9;
-            background-color: #1a1a3a;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
+    .game-container {
+        width: 100%;
+        max-width: 900px;
+        aspect-ratio: 16/9;
+        background: linear-gradient(to top, #3a1a5c, #1a0d2a); /* Night market purple gradient */
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.7);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
 
-        .game-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* Simplified CSS Background based on the image concept */
-            background-color: #2c2c54; /* Dark blue-purple */
-            background-image:
-                /* Lantern/light effects (simplified) */
-                radial-gradient(circle at 15% 15%, rgba(255,100,0,0.5) 5%, transparent 20%),
-                radial-gradient(circle at 35% 10%, rgba(255,150,0,0.5) 5%, transparent 20%),
-                radial-gradient(circle at 65% 12%, rgba(255,120,0,0.5) 5%, transparent 20%),
-                radial-gradient(circle at 85% 18%, rgba(255,180,0,0.5) 5%, transparent 20%),
-                /* Distant market stalls (simplified shapes) */
-                linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%);
-            background-size: cover;
-            background-position: center;
-            filter: brightness(0.7);
-            z-index: 0;
-        }
+    /* --- BACKGROUND LANTERNS --- */
+    .game-background {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: transparent;
+        background-image:
+            radial-gradient(circle at 10% 20%, rgba(255,200,0,0.6) 6%, transparent 20%),
+            radial-gradient(circle at 30% 10%, rgba(255,150,50,0.6) 6%, transparent 20%),
+            radial-gradient(circle at 70% 15%, rgba(255,100,0,0.6) 6%, transparent 20%),
+            radial-gradient(circle at 85% 25%, rgba(255,180,0,0.6) 6%, transparent 20%);
+        z-index: 0;
+        filter: brightness(0.8);
+        animation: lantern-glow 2s ease-in-out infinite alternate;
+    }
 
-        .game-header {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 25px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-        }
+    @keyframes lantern-glow {
+        0% { filter: brightness(0.8); }
+        50% { filter: brightness(1.1); }
+        100% { filter: brightness(0.8); }
+    }
 
-        .game-title {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
+    /* --- HEADER --- */
+    .game-header {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 25px;
+        background-color: rgba(0,0,0,0.4);
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
 
-        .game-info {
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
+    .game-title {
+        font-size: 1.6em;
+        font-weight: bold;
+        color: #FFD700; /* Gold */
+        text-shadow: 0 0 10px #FFAA00;
+    }
 
-        .timer, .score {
-            display: flex;
-            align-items: center;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #ffda44; /* Goldish color for timer/score */
-        }
+    .game-info {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
 
-        .timer img {
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-            filter: invert(1);
-        }
+    .timer, .score {
+        display: flex;
+        align-items: center;
+        background-color: rgba(0,0,0,0.5);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: bold;
+        color: #FFCC00;
+        font-size: 1.1em;
+    }
 
-        .score .score-label {
-            font-size: 0.8em;
-            margin-right: 5px;
-            color: #ccc;
-        }
+    .timer img {
+        width: 20px;
+        height: 20px;
+        margin-right: 6px;
+        filter: invert(1);
+    }
 
-        .game-area {
-            position: relative;
-            z-index: 1;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 30px;
-        }
+    .score .score-label {
+        font-size: 0.8em;
+        margin-right: 5px;
+        color: #eee;
+    }
 
-        .game-title-banner {
-            text-align: center;
-            margin-top: 30px;
-            background-color: rgba(0, 0, 0, 0.4);
-            padding: 15px 30px;
-            border-radius: 10px;
-            border: 2px solid #ffda44;
-        }
+    /* --- GAME AREA --- */
+    .game-area {
+        position: relative;
+        z-index: 2;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 30px;
+    }
 
-        .game-title-banner h1 {
-            margin: 0;
-            font-size: 2.8em;
-            color: #ffda44;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(255, 218, 68, 0.7);
-        }
+    .game-title-banner {
+        text-align: center;
+        margin-top: 25px;
+        background-color: rgba(0,0,0,0.4);
+        padding: 12px 25px;
+        border-radius: 10px;
+        border: 2px solid #FFD700;
+    }
 
-        .game-title-banner h2 {
-            margin: 5px 0;
-            font-size: 1.5em;
-            color: #eee;
-            font-weight: normal;
-        }
+    .game-title-banner h1 {
+        margin: 0;
+        font-size: 2.8em;
+        color: #FFD700;
+        text-shadow: 0 0 10px #FFAA00;
+        letter-spacing: 2px;
+    }
 
-        .game-title-banner p {
-            margin: 0;
-            font-size: 1em;
-            color: #ccc;
-        }
+    .game-title-banner h2 {
+        margin: 5px 0;
+        font-size: 1.5em;
+        color: #FFEEAA;
+        font-weight: normal;
+    }
 
-        .game-elements {
-            display: flex;
-            width: 100%;
-            justify-content: center;
-            align-items: flex-end;
-            flex-grow: 1;
-            position: relative;
-        }
+    .game-title-banner p {
+        margin: 0;
+        font-size: 1em;
+        color: #ccc;
+    }
 
-        .tension-meter {
-            position: absolute;
-            left: 5%;
-            bottom: 20%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    /* --- GAME ELEMENTS --- */
+    .game-elements {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        align-items: flex-end;
+        flex-grow: 1;
+        position: relative;
+    }
 
-        .tension-meter .meter-label {
-            writing-mode: vertical-lr;
-            text-orientation: mixed;
-            font-size: 0.9em;
-            font-weight: bold;
-            color: #ccc;
-            margin-bottom: 10px;
-        }
+    /* --- TENSION METER --- */
+    .tension-meter {
+        position: absolute;
+        left: 5%;
+        bottom: 20%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-        .tension-meter .meter-bar {
-            width: 30px;
-            height: 150px;
-            background-color: rgba(0, 0, 0, 0.6);
-            border-radius: 15px;
-            border: 2px solid #ffda44;
-            display: flex;
-            flex-direction: column-reverse;
-            overflow: hidden;
-        }
+    .tension-meter .meter-label {
+        writing-mode: vertical-lr;
+        text-orientation: mixed;
+        font-size: 0.9em;
+        font-weight: bold;
+        color: #FFCC00;
+        margin-bottom: 10px;
+    }
 
-        .tension-meter .meter-fill {
-            width: 100%;
-            background: linear-gradient(to top, green, yellow, red);
-            transition: height 0.3s ease-in-out;
-        }
+    .tension-meter .meter-bar {
+        width: 30px;
+        height: 150px;
+        background-color: rgba(0,0,0,0.6);
+        border-radius: 15px;
+        border: 2px solid #FFCC00;
+        display: flex;
+        flex-direction: column-reverse;
+        overflow: hidden;
+    }
 
-        .game-table {
-            position: relative;
-            width: 60%;
-            height: 150px;
-            background-color: #8B4513;
-            border-radius: 10px;
-            border: 5px solid #5a2e0a;
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            padding-bottom: 10px;
-            margin-bottom: 50px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-        }
+    .tension-meter .meter-fill {
+        width: 100%;
+        background: linear-gradient(to top, #00ff00, #ffcc00, #ff3300);
+        transition: height 0.3s ease-in-out;
+    }
 
-        .game-table::before { /* Table legs/base - simplified */
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            left: 10%;
-            width: 80%;
-            height: 50px;
-            background-color: #6d3a0e;
-            border-radius: 0 0 10px 10px;
-        }
+    /* --- TABLE --- */
+    .game-table {
+        position: relative;
+        width: 60%;
+        height: 150px;
+        background-color: #8B4513;
+        border-radius: 10px;
+        border: 5px solid #5a2e0a;
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        padding-bottom: 10px;
+        margin-bottom: 50px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    }
 
-        .bottles {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .bottle {
-            width: 40px;
-            height: 80px;
-            background-color: #653b1b;
-            border: 2px solid #4a2a12;
-            border-radius: 0 0 15px 15px;
-            position: relative;
-            z-index: 2;
-        }
+    .game-table::before {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: 10%;
+        width: 80%;
+        height: 50px;
+        background-color: #6d3a0e;
+        border-radius: 0 0 10px 10px;
+    }
 
-        .bottle:nth-child(even) {
-            transform: rotate(2deg);
-        }
-        .bottle:nth-child(odd) {
-            transform: rotate(-2deg);
-        }
+    .bottles {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .bottle {
+        width: 40px;
+        height: 80px;
+        background-color: #653b1b;
+        border: 2px solid #4a2a12;
+        border-radius: 0 0 15px 15px;
+        position: relative;
+        z-index: 2;
+    }
 
-        .hanging-element {
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            pointer-events: none;
-            z-index: 3;
-        }
+    .bottle:nth-child(even) { transform: rotate(2deg); }
+    .bottle:nth-child(odd) { transform: rotate(-2deg); }
 
-        .hand {
-            width: 100px;
-            height: 80px;
-            background-color: #e0b498;
-            border-radius: 50%;
-            border: 2px solid #b38b71;
-            position: relative;
-            top: -20px;
-            left: -20px;
-            transform: rotate(-10deg);
-        }
+    /* --- HANGING ELEMENTS --- */
+    .hanging-element {
+        position: absolute;
+        top: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+        z-index: 3;
+    }
 
-        .string {
-            width: 2px;
-            height: 150px;
-            background-color: #ccc;
-            position: absolute;
-            top: 50px;
-        }
+    .hand {
+        width: 100px;
+        height: 80px;
+        background-color: #e0b498;
+        border-radius: 50%;
+        border: 2px solid #b38b71;
+        position: relative;
+        top: -20px;
+        left: -20px;
+        transform: rotate(-10deg);
+        animation: hand-sway 2s ease-in-out infinite;
+    }
 
-        /* The bottle being swung */
-        .hanging-element .ring-bottle {
-            width: 50px;
-            height: 100px;
-            background-color: #653b1b;
-            border: 2px solid #4a2a12;
-            border-radius: 0 0 20px 20px;
-            transform: rotate(-30deg); /* Tilted */
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform-origin: top center;
-            margin-left: -25px;
-            transition: transform 0.5s ease-in-out; /* Add basic transition for movement */
-        }
+    @keyframes hand-sway {
+        0% { transform: rotate(-10deg); }
+        25% { transform: rotate(-5deg); }
+        50% { transform: rotate(-12deg); }
+        75% { transform: rotate(-7deg); }
+        100% { transform: rotate(-10deg); }
+    }
 
-        .start-button {
-            background: linear-gradient(to bottom, #ffea00, #ffc400);
-            color: #4a2a12;
-            font-size: 2em;
-            font-weight: bold;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-            z-index: 1;
-            margin-bottom: 20px;
-        }
+    .string {
+        width: 2px;
+        height: 150px;
+        background-color: #ccc;
+        position: absolute;
+        top: 50px;
+    }
 
-        .start-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-        }
+    /* SWINGING BOTTLE */
+    @keyframes swing {
+        0%   { transform: rotate(-30deg); }
+        25%  { transform: rotate(20deg); }
+        50%  { transform: rotate(-15deg); }
+        75%  { transform: rotate(10deg); }
+        100% { transform: rotate(-30deg); }
+    }
 
-        .start-button .play-icon {
-            margin-left: 10px;
-            font-size: 0.8em;
-            vertical-align: middle;
-        }
+    .ring-bottle {
+        width: 50px;
+        height: 100px;
+        background-color: #653b1b;
+        border: 2px solid #4a2a12;
+        border-radius: 0 0 20px 20px;
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform-origin: top center;
+        margin-left: -25px;
+        animation: swing 2s ease-in-out infinite;
+    }
 
-    </style>
+    /* START BUTTON */
+    .start-button {
+        background: linear-gradient(to bottom, #ffea00, #ff9900);
+        color: #4a2a12;
+        font-size: 2em;
+        font-weight: bold;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 20px;
+    }
+
+    .start-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    }
+
+</style>
 </head>
 <body>
-    <div class="game-container">
-        <header class="game-header">
-            <div class="game-title">Game Concept Art</div>
-            <div class="game-info">
-                <div class="timer">
-                    <img src="https://img.icons8.com/ios-filled/50/ffffff/timer.png" alt="Timer Icon" width="20" height="20"> 
-                    TIME: <span id="time-display">0:38</span>
-                </div>
-                <div class="score">
-                    <span class="score-label"> स्कोर </span>
-                    <span id="score-display">210</span>
+<div class="game-container">
+    <header class="game-header">
+        <div class="game-title">Night Market Challenge</div>
+        <div class="game-info">
+            <div class="timer">
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/timer.png" alt="Timer Icon"> 
+                TIME: <span id="time-display">0:38</span>
+            </div>
+            <div class="score">
+                <span class="score-label"> स्कोर </span>
+                <span id="score-display">210</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="game-area">
+        <div class="game-title-banner">
+            <h1>STAND THE BOTTLE</h1>
+            <h2>劍抱子</h2>
+            <p>STEADY HANDS WIN THE NIGHT!</p>
+        </div>
+
+        <div class="game-elements">
+            <div class="tension-meter">
+                <div class="meter-label">TENSION</div>
+                <div class="meter-bar">
+                    <div class="meter-fill" style="height: 40%;"></div> 
                 </div>
             </div>
-        </header>
-
-        <main class="game-area">
-            <div class="game-title-banner">
-                <h1>STAND THE BOTTLE</h1>
-                <h2>劍抱子</h2>
-                <p>STEADY HANDS WIN THE NIGHT!</p>
-            </div>
-
-            <div class="game-elements">
-                <div class="tension-meter">
-                    <div class="meter-label">TENSION</div>
-                    <div class="meter-bar">
-                        <div class="meter-fill" style="height: 40%;"></div> 
-                    </div>
-                </div>
-                
-                <div class="game-table">
-                    <div class="bottles">
-                        <div class="bottle"></div>
-                        <div class="bottle"></div>
-                        <div class="bottle"></div>
-                    </div>
-                    <div class="hanging-element">
-                        <div class="hand"></div>
-                        <div class="string"></div>
-                        <div class="ring-bottle" id="swinging-bottle"></div>
-                    </div>
-                    <div class="bottles">
-                        <div class="bottle"></div>
-                        <div class="bottle"></div>
-                    </div>
-                </div>
-            </div>
-
-            <button id="start-button" class="start-button">START <span class="play-icon">▶</span></button>
-        </main>
-
-        <div class="game-background"></div>
-    </div>
-
-    <script>
-        // --- JAVASCRIPT LOGIC (Placeholder) ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const startButton = document.getElementById('start-button');
-            const timeDisplay = document.getElementById('time-display');
-            const scoreDisplay = document.getElementById('score-display');
-            const tensionMeterFill = document.querySelector('.tension-meter .meter-fill');
-            const swingingBottle = document.getElementById('swinging-bottle');
-
-            let gameRunning = false;
-            let timeRemaining = 38;
-            let score = 210;
-            let tension = 40; 
             
-            // Initial state update
-            timeDisplay.textContent = `0:${timeRemaining < 10 ? '0' : ''}${timeRemaining}`;
-            scoreDisplay.textContent = score;
-            tensionMeterFill.style.height = `${tension}%`;
+            <div class="game-table">
+                <div class="bottles">
+                    <div class="bottle"></div>
+                    <div class="bottle"></div>
+                    <div class="bottle"></div>
+                </div>
+                <div class="hanging-element">
+                    <div class="hand"></div>
+                    <div class="string"></div>
+                    <div class="ring-bottle" id="swinging-bottle"></div>
+                </div>
+                <div class="bottles">
+                    <div class="bottle"></div>
+                    <div class="bottle"></div>
+                </div>
+            </div>
+        </div>
 
+        <button id="start-button" class="start-button">START <span class="play-icon">▶</span></button>
+    </main>
 
-            function startGame() {
-                if (gameRunning) return; 
-                gameRunning = true;
-                startButton.textContent = "PLAYING...";
-                startButton.disabled = true;
-                console.log("Game Started! Add your real game logic here.");
+    <div class="game-background"></div>
+</div>
 
-                // ** 1. Simple Timer Countdown **
-                const timerInterval = setInterval(() => {
-                    if (gameRunning && timeRemaining > 0) {
-                        timeRemaining--;
-                        const seconds = timeRemaining % 60;
-                        timeDisplay.textContent = `0:${seconds < 10 ? '0' : ''}${seconds}`;
-                        if (timeRemaining <= 0) {
-                            endGame();
-                        }
-                    } else if (!gameRunning && timeRemaining <= 0) {
-                        clearInterval(timerInterval);
-                    }
-                }, 1000);
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const startButton = document.getElementById('start-button');
+    const timeDisplay = document.getElementById('time-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const tensionMeterFill = document.querySelector('.tension-meter .meter-fill');
+    const swingingBottle = document.getElementById('swinging-bottle');
 
-                // ** 2. Tension and Scoring Updates (Placeholder Logic) **
-                const gameInterval = setInterval(() => {
-                    if (!gameRunning) {
-                        clearInterval(gameInterval);
-                        return;
-                    }
-                    
-                    // Simulate tension rising
-                    tension = Math.min(100, tension + (Math.random() * 2 - 1)); // Random jitter
-                    tensionMeterFill.style.height = `${tension}%`;
-                    
-                    if (tension >= 95) {
-                         // Severe Tension!
-                    }
+    let gameRunning = false;
+    let timeRemaining = 38;
+    let score = 210;
+    let tension = 40;
 
-                    // Placeholder for a score increase event
-                    if (Math.random() < 0.02) { // 2% chance per second to get 10 points
-                        score += 10;
-                        scoreDisplay.textContent = score;
-                    }
+    function updateUI() {
+        timeDisplay.textContent = `0:${timeRemaining < 10 ? '0' : ''}${timeRemaining}`;
+        scoreDisplay.textContent = score;
+        tensionMeterFill.style.height = `${tension}%`;
+    }
 
-                }, 1000);
+    function updateSwingSpeed() {
+        const baseSpeed = 2;
+        const speed = baseSpeed - (tension/100)*1.5;
+        swingingBottle.style.animationDuration = `${Math.max(0.5,speed)}s`;
+    }
 
-                // ** 3. Swinging Animation (Placeholder using CSS class) **
-                // In a real game, this would be physics-based with user input.
-                // swingingBottle.classList.add('is-swinging'); // You'd need CSS for this
+    function startGame() {
+        if (gameRunning) return;
+        gameRunning = true;
+        startButton.textContent = "PLAYING...";
+        startButton.disabled = true;
 
-                // Placeholder for game over on extreme tension
-                const tensionCheck = setInterval(() => {
-                    if (tension >= 100) {
-                        clearInterval(tensionCheck);
-                        endGame();
-                        alert("Tension maxed out! Game Over!");
-                    }
-                }, 500);
-
+        const timerInterval = setInterval(() => {
+            if (!gameRunning) { clearInterval(timerInterval); return; }
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                updateUI();
+            } else {
+                endGame();
             }
+        }, 1000);
 
-            function endGame() {
-                gameRunning = false;
-                startButton.textContent = "RESTART";
-                startButton.disabled = false;
-                // swingingBottle.classList.remove('is-swinging');
+        const gameInterval = setInterval(() => {
+            if (!gameRunning) { clearInterval(gameInterval); return; }
+
+            tension = Math.min(100, tension + (Math.random()*2-1));
+            updateUI();
+            updateSwingSpeed();
+
+            if (Math.random() < 0.02) { score += 10; updateUI(); }
+            if (tension >= 100) {
+                endGame();
+                alert("Tension maxed out! Game Over!");
             }
+        }, 500);
+    }
 
-            // Start/Restart Listener
-            startButton.addEventListener('click', () => {
-                if (!gameRunning) {
-                    // Reset game state for a true restart
-                    timeRemaining = 38;
-                    score = 210;
-                    tension = 40;
-                    startGame();
-                }
-            });
+    function endGame() {
+        gameRunning = false;
+        startButton.textContent = "RESTART";
+        startButton.disabled = false;
+    }
 
-        });
-    </script>
+    startButton.addEventListener('click', () => {
+        if (!gameRunning) {
+            timeRemaining = 38;
+            score = 210;
+            tension = 40;
+            updateUI();
+            startGame();
+        }
+    });
+
+    updateUI();
+});
+</script>
 </body>
 </html>

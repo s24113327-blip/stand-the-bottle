@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stand the Bottle - Night Market Game</title>
+<title>Stand the Bottle - Interactive</title>
 <style>
-    /* --- GENERAL STYLES --- */
     body {
         margin: 0;
         font-family: 'Arial', sans-serif;
-        background-color: #1a0d2a; /* Dark night sky */
+        background-color: #1a0d2a;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -22,7 +21,7 @@
         width: 100%;
         max-width: 900px;
         aspect-ratio: 16/9;
-        background: linear-gradient(to top, #3a1a5c, #1a0d2a); /* Night market purple gradient */
+        background: linear-gradient(to top, #3a1a5c, #1a0d2a);
         border-radius: 15px;
         box-shadow: 0 0 30px rgba(0,0,0,0.7);
         display: flex;
@@ -31,32 +30,7 @@
         overflow: hidden;
     }
 
-    /* --- BACKGROUND LANTERNS --- */
-    .game-background {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background-color: transparent;
-        background-image:
-            radial-gradient(circle at 10% 20%, rgba(255,200,0,0.6) 6%, transparent 20%),
-            radial-gradient(circle at 30% 10%, rgba(255,150,50,0.6) 6%, transparent 20%),
-            radial-gradient(circle at 70% 15%, rgba(255,100,0,0.6) 6%, transparent 20%),
-            radial-gradient(circle at 85% 25%, rgba(255,180,0,0.6) 6%, transparent 20%);
-        z-index: 0;
-        filter: brightness(0.8);
-        animation: lantern-glow 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes lantern-glow {
-        0% { filter: brightness(0.8); }
-        50% { filter: brightness(1.1); }
-        100% { filter: brightness(0.8); }
-    }
-
-    /* --- HEADER --- */
     .game-header {
-        position: relative;
-        z-index: 2;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -64,98 +38,91 @@
         background-color: rgba(0,0,0,0.4);
         border-top-left-radius: 15px;
         border-top-right-radius: 15px;
+        z-index: 2;
+        position: relative;
     }
 
     .game-title {
         font-size: 1.6em;
         font-weight: bold;
-        color: #FFD700; /* Gold */
+        color: #FFD700;
         text-shadow: 0 0 10px #FFAA00;
-    }
-
-    .game-info {
-        display: flex;
-        gap: 20px;
-        align-items: center;
     }
 
     .timer, .score {
         display: flex;
         align-items: center;
+        gap: 5px;
         background-color: rgba(0,0,0,0.5);
-        padding: 6px 14px;
+        padding: 5px 12px;
         border-radius: 20px;
         font-weight: bold;
         color: #FFCC00;
-        font-size: 1.1em;
     }
 
-    .timer img {
-        width: 20px;
-        height: 20px;
-        margin-right: 6px;
-        filter: invert(1);
-    }
-
-    .score .score-label {
-        font-size: 0.8em;
-        margin-right: 5px;
-        color: #eee;
-    }
-
-    /* --- GAME AREA --- */
     .game-area {
         position: relative;
-        z-index: 2;
         flex-grow: 1;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
-        padding-bottom: 30px;
+        padding-bottom: 40px;
+        z-index: 1;
     }
 
-    .game-title-banner {
-        text-align: center;
-        margin-top: 25px;
-        background-color: rgba(0,0,0,0.4);
-        padding: 12px 25px;
+    .game-table {
+        position: relative;
+        width: 60%;
+        height: 150px;
+        background-color: #8B4513;
         border-radius: 10px;
-        border: 2px solid #FFD700;
-    }
-
-    .game-title-banner h1 {
-        margin: 0;
-        font-size: 2.8em;
-        color: #FFD700;
-        text-shadow: 0 0 10px #FFAA00;
-        letter-spacing: 2px;
-    }
-
-    .game-title-banner h2 {
-        margin: 5px 0;
-        font-size: 1.5em;
-        color: #FFEEAA;
-        font-weight: normal;
-    }
-
-    .game-title-banner p {
-        margin: 0;
-        font-size: 1em;
-        color: #ccc;
-    }
-
-    /* --- GAME ELEMENTS --- */
-    .game-elements {
+        border: 5px solid #5a2e0a;
         display: flex;
-        width: 100%;
         justify-content: center;
         align-items: flex-end;
-        flex-grow: 1;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    }
+
+    .bottle {
+        width: 50px;
+        height: 100px;
+        background-color: #653b1b;
+        border: 2px solid #4a2a12;
+        border-radius: 0 0 20px 20px;
+        position: absolute;
+        bottom: 150px; /* start hanging above table */
+        left: 50%;
+        transform: translateX(-50%);
+        cursor: grab;
+    }
+
+    .rope {
+        width: 4px;
+        background-color: #ccc;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        transform-origin: top center;
+        z-index: 0;
+    }
+
+    .start-button {
+        background: linear-gradient(to bottom, #ffea00, #ff9900);
+        color: #4a2a12;
+        font-size: 2em;
+        font-weight: bold;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        margin-top: 20px;
+        z-index: 2;
         position: relative;
     }
 
-    /* --- TENSION METER --- */
     .tension-meter {
         position: absolute;
         left: 5%;
@@ -163,6 +130,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        z-index: 2;
     }
 
     .tension-meter .meter-label {
@@ -188,139 +156,7 @@
     .tension-meter .meter-fill {
         width: 100%;
         background: linear-gradient(to top, #00ff00, #ffcc00, #ff3300);
-        transition: height 0.3s ease-in-out;
-    }
-
-    /* --- TABLE --- */
-    .game-table {
-        position: relative;
-        width: 60%;
-        height: 150px;
-        background-color: #8B4513;
-        border-radius: 10px;
-        border: 5px solid #5a2e0a;
-        display: flex;
-        justify-content: space-around;
-        align-items: flex-end;
-        padding-bottom: 10px;
-        margin-bottom: 50px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-    }
-
-    .game-table::before {
-        content: '';
-        position: absolute;
-        bottom: -50px;
-        left: 10%;
-        width: 80%;
-        height: 50px;
-        background-color: #6d3a0e;
-        border-radius: 0 0 10px 10px;
-    }
-
-    .bottles {
-        display: flex;
-        gap: 10px;
-    }
-    
-    .bottle {
-        width: 40px;
-        height: 80px;
-        background-color: #653b1b;
-        border: 2px solid #4a2a12;
-        border-radius: 0 0 15px 15px;
-        position: relative;
-        z-index: 2;
-    }
-
-    .bottle:nth-child(even) { transform: rotate(2deg); }
-    .bottle:nth-child(odd) { transform: rotate(-2deg); }
-
-    /* --- HANGING ELEMENTS --- */
-    .hanging-element {
-        position: absolute;
-        top: -50px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        pointer-events: none;
-        z-index: 3;
-    }
-
-    .hand {
-        width: 100px;
-        height: 80px;
-        background-color: #e0b498;
-        border-radius: 50%;
-        border: 2px solid #b38b71;
-        position: relative;
-        top: -20px;
-        left: -20px;
-        transform: rotate(-10deg);
-        animation: hand-sway 2s ease-in-out infinite;
-    }
-
-    @keyframes hand-sway {
-        0% { transform: rotate(-10deg); }
-        25% { transform: rotate(-5deg); }
-        50% { transform: rotate(-12deg); }
-        75% { transform: rotate(-7deg); }
-        100% { transform: rotate(-10deg); }
-    }
-
-    .string {
-        width: 2px;
-        height: 150px;
-        background-color: #ccc;
-        position: absolute;
-        top: 50px;
-    }
-
-    /* SWINGING BOTTLE */
-    @keyframes swing {
-        0%   { transform: rotate(-30deg); }
-        25%  { transform: rotate(20deg); }
-        50%  { transform: rotate(-15deg); }
-        75%  { transform: rotate(10deg); }
-        100% { transform: rotate(-30deg); }
-    }
-
-    .ring-bottle {
-        width: 50px;
-        height: 100px;
-        background-color: #653b1b;
-        border: 2px solid #4a2a12;
-        border-radius: 0 0 20px 20px;
-        position: absolute;
-        bottom: 80px;
-        left: 50%;
-        transform-origin: top center;
-        margin-left: -25px;
-        animation: swing 2s ease-in-out infinite;
-    }
-
-    /* START BUTTON */
-    .start-button {
-        background: linear-gradient(to bottom, #ffea00, #ff9900);
-        color: #4a2a12;
-        font-size: 2em;
-        font-weight: bold;
-        padding: 15px 40px;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        transition: transform 0.2s, box-shadow 0.2s;
-        position: relative;
-        z-index: 2;
-        margin-bottom: 20px;
-    }
-
-    .start-button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        transition: height 0.2s ease-in-out;
     }
 
 </style>
@@ -328,132 +164,111 @@
 <body>
 <div class="game-container">
     <header class="game-header">
-        <div class="game-title">Night Market Challenge</div>
-        <div class="game-info">
-            <div class="timer">
-                <img src="https://img.icons8.com/ios-filled/50/ffffff/timer.png" alt="Timer Icon"> 
-                TIME: <span id="time-display">0:38</span>
-            </div>
-            <div class="score">
-                <span class="score-label"> स्कोर </span>
-                <span id="score-display">210</span>
-            </div>
-        </div>
+        <div class="game-title">Stand the Bottle</div>
+        <div class="timer">TIME: <span id="time-display">0:38</span></div>
+        <div class="score">Score: <span id="score-display">0</span></div>
     </header>
 
-    <main class="game-area">
-        <div class="game-title-banner">
-            <h1>STAND THE BOTTLE</h1>
-            <h2>劍抱子</h2>
-            <p>STEADY HANDS WIN THE NIGHT!</p>
-        </div>
-
-        <div class="game-elements">
-            <div class="tension-meter">
-                <div class="meter-label">TENSION</div>
-                <div class="meter-bar">
-                    <div class="meter-fill" style="height: 40%;"></div> 
-                </div>
-            </div>
-            
-            <div class="game-table">
-                <div class="bottles">
-                    <div class="bottle"></div>
-                    <div class="bottle"></div>
-                    <div class="bottle"></div>
-                </div>
-                <div class="hanging-element">
-                    <div class="hand"></div>
-                    <div class="string"></div>
-                    <div class="ring-bottle" id="swinging-bottle"></div>
-                </div>
-                <div class="bottles">
-                    <div class="bottle"></div>
-                    <div class="bottle"></div>
-                </div>
+    <div class="game-area">
+        <div class="tension-meter">
+            <div class="meter-label">TENSION</div>
+            <div class="meter-bar">
+                <div class="meter-fill" style="height:40%"></div>
             </div>
         </div>
 
-        <button id="start-button" class="start-button">START <span class="play-icon">▶</span></button>
-    </main>
+        <div class="rope" id="rope"></div>
+        <div class="bottle" id="bottle"></div>
+        <div class="game-table"></div>
 
-    <div class="game-background"></div>
+        <button id="start-button" class="start-button">START</button>
+    </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const startButton = document.getElementById('start-button');
-    const timeDisplay = document.getElementById('time-display');
-    const scoreDisplay = document.getElementById('score-display');
-    const tensionMeterFill = document.querySelector('.tension-meter .meter-fill');
-    const swingingBottle = document.getElementById('swinging-bottle');
+const bottle = document.getElementById('bottle');
+const rope = document.getElementById('rope');
+const startButton = document.getElementById('start-button');
+const timeDisplay = document.getElementById('time-display');
+const scoreDisplay = document.getElementById('score-display');
+const tensionFill = document.querySelector('.meter-fill');
 
-    let gameRunning = false;
-    let timeRemaining = 38;
-    let score = 210;
-    let tension = 40;
+let gameRunning = false;
+let timeRemaining = 38;
+let score = 0;
+let tension = 40;
 
-    function updateUI() {
-        timeDisplay.textContent = `0:${timeRemaining < 10 ? '0' : ''}${timeRemaining}`;
-        scoreDisplay.textContent = score;
-        tensionMeterFill.style.height = `${tension}%`;
-    }
+// Rope connection
+function updateRope() {
+    const bottleRect = bottle.getBoundingClientRect();
+    const containerRect = bottle.parentElement.getBoundingClientRect();
+    const top = 0; // rope top
+    const height = bottle.offsetTop - top;
+    rope.style.height = height + 'px';
+}
 
-    function updateSwingSpeed() {
-        const baseSpeed = 2;
-        const speed = baseSpeed - (tension/100)*1.5;
-        swingingBottle.style.animationDuration = `${Math.max(0.5,speed)}s`;
-    }
+// Dragging bottle
+let dragging = false;
+let offsetX = 0;
 
-    function startGame() {
-        if (gameRunning) return;
-        gameRunning = true;
-        startButton.textContent = "PLAYING...";
-        startButton.disabled = true;
-
-        const timerInterval = setInterval(() => {
-            if (!gameRunning) { clearInterval(timerInterval); return; }
-            if (timeRemaining > 0) {
-                timeRemaining--;
-                updateUI();
-            } else {
-                endGame();
-            }
-        }, 1000);
-
-        const gameInterval = setInterval(() => {
-            if (!gameRunning) { clearInterval(gameInterval); return; }
-
-            tension = Math.min(100, tension + (Math.random()*2-1));
-            updateUI();
-            updateSwingSpeed();
-
-            if (Math.random() < 0.02) { score += 10; updateUI(); }
-            if (tension >= 100) {
-                endGame();
-                alert("Tension maxed out! Game Over!");
-            }
-        }, 500);
-    }
-
-    function endGame() {
-        gameRunning = false;
-        startButton.textContent = "RESTART";
-        startButton.disabled = false;
-    }
-
-    startButton.addEventListener('click', () => {
-        if (!gameRunning) {
-            timeRemaining = 38;
-            score = 210;
-            tension = 40;
-            updateUI();
-            startGame();
-        }
-    });
-
-    updateUI();
+bottle.addEventListener('mousedown', e => {
+    dragging = true;
+    offsetX = e.clientX - bottle.offsetLeft;
+    bottle.style.cursor = 'grabbing';
 });
+
+document.addEventListener('mouseup', () => {
+    dragging = false;
+    bottle.style.cursor = 'grab';
+});
+
+document.addEventListener('mousemove', e => {
+    if (!dragging || !gameRunning) return;
+    const containerWidth = bottle.parentElement.offsetWidth;
+    let x = e.clientX - offsetX;
+    if (x < 0) x = 0;
+    if (x > containerWidth - bottle.offsetWidth) x = containerWidth - bottle.offsetWidth;
+    bottle.style.left = x + 'px';
+    updateRope();
+
+    // Increase tension if bottle far from center
+    const center = containerWidth/2 - bottle.offsetWidth/2;
+    tension = 40 + Math.abs(x - center)/center * 60;
+    if (tension > 100) tension = 100;
+    tensionFill.style.height = tension + '%';
+});
+
+function startGame() {
+    gameRunning = true;
+    startButton.disabled = true;
+    timeRemaining = 38;
+    score = 0;
+    tension = 40;
+    updateUI();
+}
+
+function updateUI() {
+    timeDisplay.textContent = `0:${timeRemaining<10?'0':''}${timeRemaining}`;
+    scoreDisplay.textContent = score;
+    tensionFill.style.height = tension + '%';
+}
+
+startButton.addEventListener('click', () => {
+    startGame();
+    const timerInterval = setInterval(() => {
+        if (!gameRunning) { clearInterval(timerInterval); return; }
+        if (timeRemaining > 0) {
+            timeRemaining--;
+            updateUI();
+        } else {
+            gameRunning = false;
+            startButton.disabled = false;
+        }
+    }, 1000);
+});
+
+// Initial rope update
+updateRope();
 </script>
 </body>
 </html>

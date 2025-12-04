@@ -1,356 +1,193 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Stand the Bottle — Night Market Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stand the Bottle - Night Market Game</title>
   <style>
-    :root{
-      --bg:#0b1221; /* deep night */
-      --accent:#ffb86b; /* lantern warm */
-      --neon:#6bf0ff;
-      --board:#111827;
-      --card:#0f1724;
-      --glass: rgba(255,255,255,0.06);
-      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    body {
+      margin: 0;
+      background: linear-gradient(#0b001a, #240046);
+      overflow: hidden;
+      font-family: "Trebuchet MS", sans-serif;
     }
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg) 0%, #071023 60%);color:#e6eef8}
-    *{box-sizing:border-box}
-    .wrap{display:flex;flex-direction:column;min-height:100vh}
-    header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px}
-    .title{display:flex;gap:12px;align-items:center}
-    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ff7aa2);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
-    .logo svg{width:36px;height:36px}
-    h1{font-size:18px;margin:0}
-    p.subtitle{margin:0;color:#cfe8ff66;font-size:12px}
 
-    main{display:flex;gap:20px;align-items:flex-start;padding:8px 22px 28px}
-    /* game area */
-    .game-card{flex:1;min-width:300px;border-radius:18px;padding:14px;background:linear-gradient(180deg,rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow: 0 8px 30px rgba(2,6,23,0.6);position:relative}
-    .hud{display:flex;gap:10px;align-items:center;margin-bottom:8px}
-    .chip{background:var(--glass);padding:8px 12px;border-radius:12px;font-weight:600;font-size:14px}
-    .board{background:linear-gradient(180deg,#07102a 0%, #061129 100%);border-radius:12px;padding:8px;height:520px;overflow:hidden;position:relative}
+    /* Night market lanterns */
+    .lantern {
+      position: absolute;
+      width: 70px;
+      height: 90px;
+      background: radial-gradient(circle, #ff4d6d, #c9184a);
+      border-radius: 50% 50% 40% 40%;
+      top: 20px;
+      animation: swing 3s ease-in-out infinite;
+      box-shadow: 0 0 20px #ff4d6d;
+    }
 
-    /* ground & stalls visuals */
-    .ground{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(180deg,#130e1a, #0d0710);clip-path:ellipse(100% 60% at 50% 100%);display:flex;align-items:flex-end;justify-content:center}
-    .ground .lanterns{position:absolute;top:-120px;left:0;right:0;height:120px;pointer-events:none}
+    .lantern:before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 20px;
+      background: #ffccd5;
+    }
 
-    /* ring visuals */
-    .ring{position:absolute;width:72px;height:72px;border-radius:36px;background:conic-gradient(from 200deg,#ffd7a6,#ffb86b);display:flex;align-items:center;justify-content:center;color:#111;font-weight:700;box-shadow:0 6px 14px rgba(0,0,0,0.6)}
-    .ring::after{content:'';position:absolute;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.06)}
+    .lantern:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .lantern:nth-child(2) { left: 40%; animation-delay: 1s; }
+    .lantern:nth-child(3) { left: 70%; animation-delay: 2s; }
 
-    /* bottle visual is drawn in canvas, but we build a small legend */
-    aside{width:320px;max-width:38%;min-width:240px}
-    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:14px}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    button.btn{padding:10px 14px;border-radius:10px;border:0;background:linear-gradient(180deg,var(--accent),#ff8aa8);font-weight:700;cursor:pointer}
-    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#cfe8ff}
+    @keyframes swing {
+      0% { transform: rotate(2deg); }
+      50% { transform: rotate(-2deg); }
+      100% { transform: rotate(2deg); }
+    }
 
-    footer{padding:8px 22px;color:#9fb7d4;font-size:13px;text-align:center}
-    .small{font-size:12px;color:#bad8ff88}
+    #gameCanvas {
+      display: block;
+      margin: 0 auto;
+      background: url('https://i.imgur.com/7F0V8bU.jpeg'); /* night market bg */
+      background-size: cover;
+      border-top: 4px solid #ffb3c1;
+    }
 
-    /* responsive */
-    @media (max-width:900px){main{flex-direction:column}aside{width:100%}}
+    #message {
+      position: absolute;
+      top: 20%;
+      width: 100%;
+      text-align: center;
+      color: #ffe6f2;
+      font-size: 48px;
+      font-weight: bold;
+      text-shadow: 0 0 12px #ff4d6d;
+      display: none;
+      animation: pop 0.6s ease-out;
+    }
 
-    /* playful particles */
-    .sparkle{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--neon);filter:blur(4px);opacity:0.7}
-
-    /* simple modal */
-    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6);z-index:60}
-    .modal .card{background:linear-gradient(180deg,#021023,#071329);padding:20px;border-radius:12px;text-align:center}
-    .big{font-size:20px;font-weight:800;margin:0}
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="title">
-        <div class="logo" aria-hidden>
-          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="18" width="52" height="34" rx="6" fill="white" opacity="0.06"/><path d="M32 12c4 0 6 4 6 6 0 4-6 6-6 6s-6-2-6-6c0-2 2-6 6-6z" fill="white" opacity="0.12"/></svg>
-        </div>
-        <div>
-          <h1>Stand the Bottle — Night Market</h1>
-          <p class="subtitle">Drag & release the ring. Land it on a bottle to score. Good luck!</p>
-        </div>
-      </div>
-      <div class="chip">Night Market • Family</div>
-    </header>
 
-    <main>
-      <section class="game-card">
-        <div class="hud">
-          <div class="chip" id="scoreChip">Score: 0</div>
-          <div class="chip" id="levelChip">Level: 1</div>
-          <div class="chip" id="triesChip">Tries: 10</div>
-          <div class="chip" id="timeChip">00:60</div>
-          <div style="flex:1"></div>
-          <div class="small">Tip: pull back then release — more pull = stronger throw</div>
-        </div>
+<div class="lantern"></div>
+<div class="lantern"></div>
+<div class="lantern"></div>
+<div id="message">You Did It! 🎉</div>
 
-        <div class="board" id="board">
-          <!-- interactive canvas area -->
-          <canvas id="gameCanvas" width="900" height="520" style="width:100%;height:520px;border-radius:10px;display:block"></canvas>
-          <div class="ground" aria-hidden>
-            <div class="lanterns">
-              <svg viewBox="0 0 800 120" preserveAspectRatio="none" style="width:100%;height:120px;opacity:0.95">
-                <g transform="translate(0,8)">
-                  <rect x="0" y="0" width="800" height="120" fill="url(#g)" opacity="0.05"></rect>
-                  <defs>
-                    <linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#ffb86b" stop-opacity="0.22"/><stop offset="1" stop-color="#ff7aa2" stop-opacity="0.04"/></linearGradient>
-                  </defs>
-                </g>
-              </svg>
-            </div>
-            <div style="width:90%;display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:18px">
-              <div style="width:120px;height:60px;background:#0c1226;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.6);padding:8px;text-align:center">Stall<br><small class="small">Candy</small></div>
-              <div style="width:120px;height:60px;background:#0c1226;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.6);padding:8px;text-align:center">Stall<br><small class="small">Games</small></div>
-            </div>
-          </div>
+<canvas id="gameCanvas" width="900" height="600"></canvas>
 
-          <!-- ring element for drag feedback on top of canvas -->
-          <div id="ringEl" class="ring" style="left:40px;top:340px;z-index:50;display:flex;align-items:center;justify-content:center">O</div>
+<script>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
 
-          <!-- decorative sparkles -->
-          <div id="sparkles"></div>
-        </div>
-      </section>
+  // Bottle object
+  const bottle = {
+    x: canvas.width / 2 - 20,
+    y: canvas.height - 120,
+    width: 40,
+    height: 100,
+    angle: 0,
+    standing: false,
+  };
 
-      <aside>
-        <div class="panel">
-          <h3 style="margin:0 0 8px 0">How to play</h3>
-          <p class="small" style="margin:0 0 8px 0">Drag the ring (or tap and drag) to aim, then release to throw. Land on bottles to score and complete levels. Each level increases bottle count and distance.</p>
-          <div class="controls">
-            <button class="btn" id="btnRestart">Restart</button>
-            <button class="secondary" id="btnUndo">Undo (not available)</button>
-            <button class="secondary" id="btnMute">Mute</button>
-          </div>
+  // Rope + Ring
+  const rope = {
+    startX: canvas.width / 2,
+    startY: 50,
+    length: 230,
+  };
 
-          <div style="margin-top:12px" class="small">High scores are stored locally in your browser.</div>
-          <div style="margin-top:12px" id="highscoreBox" class="small">High Score: —</div>
-        </div>
+  let ringX = rope.startX;
+  let ringY = rope.startY + rope.length;
+  let isDragging = false;
 
-        <div class="panel" style="margin-top:12px">
-          <h4 style="margin:0 0 8px 0">Customize</h4>
-          <label class="small">Time per level: <input id="timeInput" type="range" min="30" max="120" value="60"></label>
-          <div class="small" style="margin-top:8px">Use the slider to change level timer. Also edit color variables in the CSS at top for different look.</div>
-        </div>
-      </aside>
-    </main>
+  // Mouse interaction
+  canvas.addEventListener("mousedown", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
 
-    <footer>
-      Built for GitHub Pages • Drag, release, play! • Local-only high score
-    </footer>
-  </div>
+    const dist = Math.hypot(mx - ringX, my - ringY);
+    if (dist < 30) isDragging = true;
+  });
 
-  <!-- Game Script -->
-  <script>
-  // Single-file game JS
-  (()=>{
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const ringEl = document.getElementById('ringEl');
-    const scoreChip = document.getElementById('scoreChip');
-    const levelChip = document.getElementById('levelChip');
-    const triesChip = document.getElementById('triesChip');
-    const timeChip = document.getElementById('timeChip');
-    const btnRestart = document.getElementById('btnRestart');
-    const btnMute = document.getElementById('btnMute');
-    const highscoreBox = document.getElementById('highscoreBox');
-    const timeInput = document.getElementById('timeInput');
+  canvas.addEventListener("mouseup", () => {
+    isDragging = false;
+  });
 
-    let WIDTH=900, HEIGHT=520; function resize(){
-      const rect = canvas.getBoundingClientRect();
-      WIDTH = rect.width; HEIGHT = rect.height; canvas.width = WIDTH; canvas.height = HEIGHT; }
-    window.addEventListener('resize', resize); resize();
+  canvas.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
 
-    // Game state
-    let score=0, level=1, tries=10, levelTime=60, timeLeft=60, muted=false;
-    const grav=1200; // px/s^2
-    const airDrag=0.998;
+    const dx = mx - rope.startX;
+    const dy = my - rope.startY;
+    const distance = Math.hypot(dx, dy);
 
-    // ring physics state for thrown ring
-    let ring = {x:80,y:HEIGHT-160, vx:0, vy:0, r:36, held:false, visible:true};
+    if (distance < rope.length) {
+      ringX = mx;
+      ringY = my;
+    }
+  });
 
-    // bottles array
-    let bottles=[];
+  function drawBottle() {
+    ctx.save();
+    ctx.translate(bottle.x + bottle.width / 2, bottle.y + bottle.height / 2);
+    ctx.rotate(bottle.angle);
+    ctx.fillStyle = "#d4e2ff";
+    ctx.fillRect(-bottle.width / 2, -bottle.height / 2, bottle.width, bottle.height);
+    ctx.restore();
+  }
 
-    // local high score
-    const HS_KEY = 'stb_highscore_v1';
-    function loadHS(){const v = localStorage.getItem(HS_KEY); highscoreBox.textContent = 'High Score: ' + (v?v:0);}
-    function saveHS(){const prev = Number(localStorage.getItem(HS_KEY) || 0); if(score>prev) localStorage.setItem(HS_KEY, score); loadHS();}
-    loadHS();
+  function drawRing() {
+    ctx.beginPath();
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = "#ffccd5";
+    ctx.moveTo(rope.startX, rope.startY);
+    ctx.lineTo(ringX, ringY);
+    ctx.stroke();
 
-    // audio with WebAudio (tiny tones)
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    let ac = null; function ensureAC(){ if(!ac) ac=new AudioCtx(); }
-    function playTone(freq, dur=0.12, type='sine', gain=0.08){ if(muted) return; try{ ensureAC(); const g=ac.createGain(); const o=ac.createOscillator(); o.type=type; o.frequency.value=freq; g.gain.value = gain; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime+dur); o.onended=null;}catch(e){/*ignore*/} }
+    ctx.beginPath();
+    ctx.arc(ringX, ringY, 25, 0, Math.PI * 2);
+    ctx.strokeStyle = "#ff4d6d";
+    ctx.lineWidth = 6;
+    ctx.stroke();
+  }
 
-    // utility
-    function rand(min,max){return Math.random()*(max-min)+min}
+  function checkWin() {
+    if (
+      Math.abs(ringX - (bottle.x + bottle.width / 2)) < 20 &&
+      Math.abs(ringY - bottle.y) < 20
+    ) {
+      bottle.angle -= 0.02;
 
-    // create bottles for level
-    function spawnBottles(level){ bottles=[]; const baseY = HEIGHT - 140; const count = Math.min(6, 2 + Math.floor(level/1));
-      const spacing = Math.min(160, Math.max(80, WIDTH / (count+1) - 20));
-      for(let i=0;i<count;i++){
-        const x = 220 + i*spacing + rand(-20,20);
-        const y = baseY + rand(-6,6);
-        bottles.push({x,y,w:34,h:64,standing:true,score:10 + i*5, jitter: rand(0,0.6)});
+      if (Math.abs(bottle.angle) < 0.01) {
+        bottle.angle = 0;
+        bottle.standing = true;
+        document.getElementById("message").style.display = "block";
       }
     }
+  }
 
-    spawnBottles(level);
+  function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // input handling (mouse & touch)
-    let pointer = {down:false, sx:0, sy:0, cx:0, cy:0};
-    function toLocal(e){ const r = canvas.getBoundingClientRect(); if(e.touches){ return {x:e.touches[0].clientX - r.left, y:e.touches[0].clientY - r.top}; } else { return {x:e.clientX - r.left, y:e.clientY - r.top}; } }
+    drawBottle();
+    drawRing();
 
-    function startDrag(e){ e.preventDefault(); const p = toLocal(e); // only start when ring is near pointer
-      const dx = p.x - ring.x; const dy = p.y - ring.y; if(Math.hypot(dx,dy) < 80){ pointer.down=true; ring.held=true; pointer.sx=p.x; pointer.sy=p.y; }}
-    function moveDrag(e){ if(!pointer.down) return; const p = toLocal(e); pointer.cx=p.x; pointer.cy=p.y; // update ring element to follow finger but limited
-      const maxDist=160; const dx = p.x - 80; const dy = p.y - (HEIGHT-160); const dist = Math.hypot(dx,dy); const ang = Math.atan2(dy,dx);
-      const d = Math.min(maxDist, dist);
-      ring.x = 80 + Math.cos(ang)*d; ring.y = (HEIGHT-160) + Math.sin(ang)*d; updateRingEl(); }
-    function endDrag(e){ if(!pointer.down) return; pointer.down=false; ring.held=false; // compute velocity from pull vector
-      const p = toLocal(e); const dx = (80 - ring.x); const dy = ((HEIGHT-160) - ring.y); const power = Math.hypot(dx,dy)/1.8; // scale
-      const angle = Math.atan2(dy,dx);
-      ring.vx = Math.cos(angle) * power * (0.9 + Math.random()*0.2);
-      ring.vy = Math.sin(angle) * power * (0.85 + Math.random()*0.2);
-      // convert to px/s (simple tweak)
-      ring.vx *= 6; ring.vy *= 6;
-      ring.x += 2; ring.y += 2; // nudge
-      tries = Math.max(0, tries-1); updateHUD(); playTone(520,0.06,'sine',0.06);
-    }
+    if (!bottle.standing) checkWin();
 
-    canvas.addEventListener('mousedown', startDrag); canvas.addEventListener('mousemove', moveDrag); window.addEventListener('mouseup', endDrag);
-    canvas.addEventListener('touchstart', startDrag,{passive:false}); canvas.addEventListener('touchmove', moveDrag,{passive:false}); window.addEventListener('touchend', endDrag);
+    requestAnimationFrame(gameLoop);
+  }
 
-    // update ring DOM element
-    function updateRingEl(){ ringEl.style.left = (ring.x - ring.r)+'px'; ringEl.style.top = (ring.y - ring.r)+'px'; }
-    updateRingEl();
+  gameLoop();
+</script>
 
-    // collision detection for ring and bottle top
-    function checkCollisions(){ if(ring.vx===0 && ring.vy===0) return; for(const b of bottles){ if(!b.standing) continue; // treat top of bottle as small circle
-        const bx = b.x; const by = b.y - b.h/2; // top center
-        const dx = ring.x - bx; const dy = ring.y - by; const dist = Math.hypot(dx,dy);
-        // if the ring crosses the top area and velocity is lowish vertical
-        if(dist < ring.r + 10 && ring.vy > -900){ // accepted landing
-          // snap ring
-          ring.vx = 0; ring.vy = 0; ring.x = bx; ring.y = by + 6; ring.visible = false; // hide thrown ring and then respawn
-          b.standing=false; score += b.score; playTone(880,0.12,'triangle',0.12);
-          // small celebration
-          spawnSparkles(bx,by-20);
-          setTimeout(()=>{ ring.visible=true; // respawn
-            ring.x = 80; ring.y = HEIGHT-160; ring.vx=0; ring.vy=0; updateRingEl(); }, 520);
-          // after all bottles knocked, level complete
-          const remaining = bottles.filter(b=>b.standing).length;
-          if(remaining===0){ levelUp(); }
-          updateHUD(); saveHS();
-        }
-      }
-    }
-
-    // level up
-    function levelUp(){ playTone(660,0.18,'sawtooth',0.12); level++; levelTime = Number(timeInput.value); timeLeft = levelTime; spawnBottles(level); updateHUD(); }
-
-    // sparkles
-    function spawnSparkles(x,y){ const container = document.getElementById('sparkles'); for(let i=0;i<12;i++){ const el = document.createElement('div'); el.className='sparkle'; el.style.left=(x+rand(-30,30))+'px'; el.style.top=(y+rand(-30,10))+'px'; el.style.opacity='0.9'; container.appendChild(el); setTimeout(()=>el.remove(),800); } }
-
-    // draw loop
-    let last = performance.now(); function loop(t){ const dt = Math.min(0.04,(t-last)/1000); last=t; // physics
-      // update ring physics
-      if(!ring.held){ // apply gravity
-        ring.vy += grav * dt; ring.vx *= Math.pow(airDrag, dt*60);
-        ring.x += ring.vx * dt; ring.y += ring.vy * dt;
-        // bounce on ground
-        const groundY = HEIGHT - 90; if(ring.y + ring.r > groundY){ ring.y = groundY - ring.r; ring.vy *= -0.38; ring.vx *= 0.8; if(Math.abs(ring.vy) < 60) ring.vy = 0; }
-        // keep ring from flying offscreen
-        if(ring.x - ring.r > WIDTH + 200 || ring.y - ring.r > HEIGHT + 200){ // respawn
-          ring.x = 80; ring.y = HEIGHT-160; ring.vx = 0; ring.vy = 0; }
-      }
-
-      // update time
-      timeLeft -= dt; if(timeLeft <= 0){ // time run out -> lose one try
-        timeLeft = levelTime; tries = Math.max(0, tries-1); spawnBottles(level); ring.x=80; ring.y=HEIGHT-160; ring.vx=0; ring.vy=0; playTone(220,0.25,'sine',0.08); updateHUD(); }
-
-      checkCollisions(); render(); last = t; requestAnimationFrame(loop);
-    }
-
-    function render(){ // clear
-      ctx.clearRect(0,0,WIDTH,HEIGHT);
-      // background decorations
-      const g = ctx.createLinearGradient(0,0,0,HEIGHT); g.addColorStop(0,'#071329'); g.addColorStop(1,'#041022'); ctx.fillStyle=g; ctx.fillRect(0,0,WIDTH,HEIGHT);
-
-      // stars / lanterns
-      for(let i=0;i<6;i++){ ctx.beginPath(); ctx.arc(40 + i*120 + Math.sin(performance.now()/700 + i)*6, 40 + (i%2)*10, 3 + ((i+1)%3)*0.6, 0,Math.PI*2); ctx.fillStyle = 'rgba(255,200,120,0.12)'; ctx.fill(); }
-
-      // draw bottles
-      for(const b of bottles){ drawBottle(b); }
-
-      // draw thrown ring? we'll rely on DOM ring for drag; but draw shadow of ring on canvas for nicer effect when moving
-      ctx.save(); ctx.beginPath(); ctx.ellipse(ring.x, ring.y + 20, ring.r*0.9, ring.r*0.35, 0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.28)'; ctx.fill(); ctx.restore();
-
-      // draw placeholder pulley/rope from top-left to ring when held
-      if(ring.held){ ctx.beginPath(); ctx.moveTo(80, HEIGHT-160); ctx.lineTo(ring.x, ring.y); ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=4; ctx.stroke(); }
-
-      // draw HUD overlays? none
-
-      // draw bottle top highlights
-      ctx.font='12px system-ui'; ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillText('Night Market Alley', WIDTH-180, 26);
-    }
-
-    function drawBottle(b){ const x=b.x, y=b.y, w=b.w, h=b.h; ctx.save(); // shadow
-      ctx.beginPath(); ctx.ellipse(x+8,y+h/2+6,w*0.6,8,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fill();
-
-      // bottle body
-      ctx.beginPath(); ctx.moveTo(x-w/2,y+h/2); ctx.bezierCurveTo(x-w/2,y-h*0.1,x-w/6,y-h*0.5,x,y-h*0.6);
-      ctx.bezierCurveTo(x+w/6,y-h*0.5,x+w/2,y-h*0.1,x+w/2,y+h/2); ctx.closePath();
-      const lg = ctx.createLinearGradient(x, y-h, x, y+h); lg.addColorStop(0,'#9af2e9'); lg.addColorStop(1,'#0fa'); ctx.fillStyle = b.standing? lg : 'rgba(180,180,180,0.12)'; ctx.fill();
-
-      // neck
-      ctx.beginPath(); ctx.rect(x-6,y-h*0.62,12,h*0.12); ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.fill();
-
-      // label
-      ctx.beginPath(); ctx.rect(x-14,y-h*0.28,28,h*0.18); ctx.fillStyle='rgba(10,10,10,0.16)'; ctx.fill();
-
-      // score tiny
-      ctx.fillStyle='#fff'; ctx.font='12px system-ui'; ctx.fillText(''+b.score, x-8, y-h*0.08);
-
-      // topple effect
-      if(!b.standing){ ctx.globalAlpha=0.6; ctx.translate(x, y); ctx.rotate(0.9); ctx.translate(-x,-y); ctx.fillStyle='rgba(255,120,80,0.06)'; ctx.fill(); }
-      ctx.restore(); }
-
-    function updateHUD(){ scoreChip.textContent = 'Score: ' + score; levelChip.textContent = 'Level: ' + level; triesChip.textContent = 'Tries: ' + tries; timeChip.textContent = formatTime(Math.max(0, Math.floor(timeLeft))); }
-    function formatTime(s){ const mm = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(Math.floor(s%60)).padStart(2,'0'); return mm + ':' + ss; }
-
-    // button controls
-    btnRestart.addEventListener('click', ()=>{ score=0; level=1; tries=10; levelTime = Number(timeInput.value); timeLeft = levelTime; spawnBottles(level); saveHS(); updateHUD(); playTone(440,0.1); });
-    btnMute.addEventListener('click', ()=>{ muted=!muted; btnMute.textContent = muted? 'Unmute' : 'Mute'; if(!muted) playTone(660,0.06); });
-
-    // start timed loop
-    timeInput.addEventListener('input', ()=>{ levelTime=Number(timeInput.value); timeLeft=levelTime; updateHUD(); });
-
-    // timers: decrement displayed time every second
-    setInterval(()=>{ updateHUD(); }, 400);
-
-    // end game condition check
-    setInterval(()=>{ if(tries <= 0){ // game over
-        saveHS(); showGameOver(); tries = 0; updateHUD(); } }, 700);
-
-    function showGameOver(){ // modal
-      const modal = document.createElement('div'); modal.className='modal'; const card = document.createElement('div'); card.className='card'; card.innerHTML = `<h2 class="big">Game Over</h2><p class="small">Score: ${score} • Level: ${level}</p><div style="margin-top:12px"><button class="btn" id="gmRestart">Play Again</button></div>`;
-      modal.appendChild(card); document.body.appendChild(modal); document.getElementById('gmRestart').addEventListener('click', ()=>{ document.body.removeChild(modal); score=0; level=1; tries=10; timeLeft=Number(timeInput.value); spawnBottles(level); updateHUD(); }); }
-
-    // initial HUD
-    levelTime = Number(timeInput.value); timeLeft = levelTime; updateHUD();
-
-    // animate sparkles subtle
-    setInterval(()=>{
-      const container = document.getElementById('sparkles'); container.innerHTML=''; for(let i=0;i<8;i++){ const el=document.createElement('div'); el.className='sparkle'; el.style.left = (20 + i*90 + Math.sin(performance.now()/1000 + i)*20)+'px'; el.style.top = (20 + (i%3)*24 + Math.cos(performance.now()/900 + i)*10)+'px'; el.style.opacity='0.6'; container.appendChild(el); }
-    },600);
-
-    // start
-    requestAnimationFrame(loop);
-  })();
-  </script>
 </body>
 </html>

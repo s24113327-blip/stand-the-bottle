@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Taiwan Night Market: Bottle Stand</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -18,15 +18,15 @@
                 <li>⚠️ <strong>Caution:</strong> Pulling too fast makes the base slide!</li>
                 <li>🏆 <strong>Win:</strong> Make the bottle stand perfectly vertical.</li>
             </ul>
-            <button onclick="startGame()" class="menu-btn">START GAME</button>
+            <button id="startBtn" class="menu-btn">START GAME</button>
         </div>
     </div>
 
     <div id="pauseOverlay" class="overlay hidden">
         <div class="modal">
             <h2>GAME PAUSED</h2>
-            <button onclick="togglePause()" class="menu-btn">RESUME</button>
-            <button onclick="exitGame()" class="menu-btn exit">EXIT TO MENU</button>
+            <button id="resumeBtn" class="menu-btn">RESUME</button>
+            <button id="exitBtn" class="menu-btn exit">EXIT TO MENU</button>
         </div>
     </div>
 

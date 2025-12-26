@@ -10,38 +10,33 @@
     <div id="tutorialOverlay" class="overlay">
         <div class="modal">
             <h2>🏮 夜市立瓶子 🏮</h2>
-            <p>Stand the bottle using the ring!</p>
-            <button id="startBtn" class="menu-btn">START GAME</button>
-        </div>
-    </div>
-
-    <div id="pauseOverlay" class="overlay hidden">
-        <div class="modal">
-            <h2>PAUSED</h2>
-            <button id="resumeBtn" class="menu-btn">RESUME</button>
+            <p>Master the center of gravity! Lift the bottle slowly so the base doesn't slide away.</p>
+            <ul class="how-to-list" style="text-align: left; margin: 15px 0;">
+                <li>🎯 Grab the pink ring.</li>
+                <li>⬆️ Lift upward slowly.</li>
+                <li>⚠️ Move too fast and the bottle slides!</li>
+            </ul>
+            <button id="startBtn" class="menu-btn" style="position: relative; z-index: 1001;">START GAME</button>
         </div>
     </div>
 
     <div class="game-container">
+        <div class="top-bar">
+            <div class="score-box">Points: <span id="score">0</span></div>
+            <div class="score-box">Attempts: <span id="attempts">0</span></div>
+        </div>
         <div class="header">
             <h1>夜市立瓶子</h1>
             <p class="subtitle">BOTTLE STAND CHALLENGE</p>
         </div>
-        
         <div class="game-board">
             <canvas id="gameCanvas"></canvas>
             <div class="controls">
-                <button id="pauseBtn" class="icon-btn">⏸</button>
                 <div class="status-display"><span id="status">Ready?</span></div>
                 <button id="resetBtn" class="icon-btn">🔄</button>
             </div>
         </div>
-
-        <div class="stats-footer">
-            <span>Attempts: <span id="attempts">0</span></span>
-        </div>
     </div>
-
     <script src="game.js"></script>
 </body>
 </html>

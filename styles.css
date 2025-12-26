@@ -1,140 +1,203 @@
-:root {
-    --neon-pink: #ff007f;
-    --neon-blue: #00f3ff;
-    --neon-yellow: #ffee00;
-    --bg-dark: #020617;
-    --panel-bg: #0f172a;
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const gameState = {
+    paused: true,
+    level: 1,
+    score: 0,
+    bestScore: localStorage.getItem("bestScore") || 0,
+    attempts: 0,
+    bottleAngle: 0,
+    bottleBaseX: 0,
+    originalBaseX: 0,
+    bottleBaseY: 0,
+    ropeAnchorX: 0,
+    ropeAnchorY: 40,
+    ringX: 0,
+    ringY: 0,
+    ringRadius: 22,
+    isDragging: false,
+    hasWon: false,
+    friction: 0.85,
+    ropeSwing: 0,
+    ropeVelocity: 0,
+    bottleWobble: 0,
+    lastMouseX: 0,
+    baseVelocity: 0
+};
+
+function init() {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0) return; // Prevent init if elements aren't sized yet
+
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    
+    gameState.originalBaseX = canvas.width / 2 - 80;
+    gameState.bottleBaseX = gameState.originalBaseX;
+    gameState.bottleBaseY = canvas.height * 0.85;
+    gameState.ropeAnchorX = canvas.width / 2;
+    
+    document.getElementById("bestScore").textContent = gameState.bestScore;
+    updateRingPosition();
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+function updateRingPosition() {
+    const totalLength = 170; 
+    gameState.ringX = gameState.bottleBaseX + Math.cos(gameState.bottleAngle) * totalLength;
+    gameState.ringY = gameState.bottleBaseY + Math.sin(gameState.bottleAngle) * totalLength;
 }
 
-body {
-    background-color: var(--bg-dark);
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
+function updatePhysics() {
+    if (gameState.hasWon) return;
+
+    gameState.ropeVelocity += (0 - gameState.ropeSwing) * 0.1;
+    gameState.ropeVelocity *= 0.92;
+    gameState.ropeSwing += gameState.ropeVelocity;
+    gameState.bottleWobble *= 0.9;
+
+    if (!gameState.isDragging) {
+        gameState.baseVelocity += (gameState.originalBaseX - gameState.bottleBaseX) * 0.05;
+        gameState.baseVelocity *= 0.8;
+        gameState.bottleBaseX += gameState.baseVelocity;
+        if (gameState.bottleAngle < 0) gameState.bottleAngle += 0.05;
+        if (gameState.bottleAngle > 0) gameState.bottleAngle = 0;
+    } else {
+        gameState.bottleBaseX += gameState.baseVelocity;
+        gameState.baseVelocity *= 0.9;
+    }
+    updateRingPosition();
 }
 
-.overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(5px);
-    z-index: 100;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+function checkWinCondition() {
+    if (gameState.hasWon) return;
+    if (gameState.bottleAngle <= -Math.PI / 2 * 0.97 && Math.abs(gameState.baseVelocity) < 0.3) {
+        gameState.hasWon = true;
+        gameState.score += 100;
+        document.getElementById("score").textContent = gameState.score;
+        document.getElementById("status").textContent = "立起來了! 🎉";
+        
+        setTimeout(() => {
+            gameState.hasWon = false;
+            gameState.bottleAngle = 0;
+            gameState.level++;
+            document.getElementById("level").textContent = gameState.level;
+            document.getElementById("status").textContent = "Level " + gameState.level;
+        }, 2000);
+    }
 }
 
-.hidden { display: none !important; }
+function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Table line
+    ctx.strokeStyle = "#00f3ff";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, gameState.bottleBaseY + 2);
+    ctx.lineTo(canvas.width, gameState.bottleBaseY + 2);
+    ctx.stroke();
 
-.modal {
-    background: var(--panel-bg);
-    padding: 2rem;
-    border-radius: 20px;
-    border: 3px solid var(--neon-pink);
-    box-shadow: 0 0 30px var(--neon-pink);
-    text-align: center;
-    max-width: 450px;
-    width: 90%;
+    // Rope
+    ctx.strokeStyle = "#ffee00";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(gameState.ropeAnchorX, gameState.ropeAnchorY);
+    ctx.quadraticCurveTo(
+        (gameState.ropeAnchorX + gameState.ringX) / 2 + gameState.ropeSwing,
+        (gameState.ropeAnchorY + gameState.ringY) / 2 + 30,
+        gameState.ringX, gameState.ringY
+    );
+    ctx.stroke();
+
+    // Bottle
+    ctx.save();
+    const wobbleX = Math.sin(Date.now() * 0.05) * gameState.bottleWobble;
+    ctx.translate(gameState.bottleBaseX + wobbleX, gameState.bottleBaseY);
+    ctx.rotate(gameState.bottleAngle);
+    ctx.fillStyle = "#10b981";
+    ctx.fillRect(0, -21, 135, 42); 
+    ctx.fillRect(135, -9, 35, 18); 
+    ctx.fillStyle = "#ff0033";
+    ctx.fillRect(170, -11, 8, 22);  
+    ctx.restore();
+
+    // Ring
+    ctx.strokeStyle = "#ff007f";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(gameState.ringX, gameState.ringY, gameState.ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
 }
 
-.modal h2 { color: var(--neon-yellow); font-size: 2rem; }
+// UI Controls
+const startGame = () => {
+    document.getElementById("tutorialOverlay").classList.add("hidden");
+    gameState.paused = false;
+    init();
+};
 
-.how-to-list {
-    text-align: left;
-    margin: 1.5rem 0;
-    list-style: none;
-    color: #cbd5e1;
-}
+const togglePause = () => {
+    gameState.paused = !gameState.paused;
+    document.getElementById("pauseOverlay").classList.toggle("hidden");
+};
 
-.how-to-list li { margin-bottom: 10px; padding-left: 25px; position: relative; }
-.how-to-list li::before { content: "🏮"; position: absolute; left: 0; }
+// Event Listeners
+window.addEventListener("load", () => {
+    init();
+    const loop = () => {
+        if (!gameState.paused) {
+            updatePhysics();
+            checkWinCondition();
+        }
+        drawGame();
+        requestAnimationFrame(loop);
+    };
+    loop();
+});
 
-.game-container {
-    width: 95%;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+canvas.addEventListener("mousedown", (e) => {
+    if (gameState.paused || gameState.hasWon) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    if (Math.hypot(mx - gameState.ringX, my - gameState.ringY) < 50) {
+        gameState.isDragging = true;
+        gameState.lastMouseX = mx;
+    }
+});
 
-.top-bar { display: flex; justify-content: space-between; }
+window.addEventListener("mousemove", (e) => {
+    if (!gameState.isDragging || gameState.paused) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    
+    const speed = mx - gameState.lastMouseX;
+    gameState.ropeVelocity += speed * 0.15;
+    if (Math.abs(speed) > 10) gameState.bottleWobble = Math.abs(speed) * 0.4;
 
-.score-box {
-    background: var(--panel-bg);
-    padding: 8px;
-    border-radius: 10px;
-    border-bottom: 3px solid var(--neon-blue);
-    min-width: 90px;
-    text-align: center;
-}
+    const dx = mx - gameState.bottleBaseX;
+    const dy = my - gameState.bottleBaseY;
+    gameState.bottleAngle = Math.max(-Math.PI / 2, Math.min(Math.atan2(dy, dx), 0));
 
-.header h1 {
-    text-align: center;
-    font-size: 2.5rem;
-    text-shadow: 0 0 10px var(--neon-pink);
-}
+    if (Math.abs(mx - gameState.ringX) > 40) {
+        gameState.baseVelocity += (mx > gameState.bottleBaseX ? 1 : -1) * (1.1 - gameState.friction);
+    }
+    gameState.lastMouseX = mx;
+});
 
-.subtitle { text-align: center; color: var(--neon-blue); letter-spacing: 2px; }
+window.addEventListener("mouseup", () => {
+    if (gameState.isDragging) {
+        gameState.isDragging = false;
+        gameState.attempts++;
+        document.getElementById("attempts").textContent = gameState.attempts;
+    }
+});
 
-.game-board {
-    background: #000;
-    border-radius: 20px;
-    padding: 10px;
-    border: 4px solid #334155;
-}
-
-#gameCanvas {
-    width: 100%;
-    height: 450px;
-    display: block; /* Important for alignment */
-    background: radial-gradient(circle, #1e293b, #020617);
-    border-radius: 10px;
-    touch-action: none;
-}
-
-.controls { display: flex; gap: 10px; margin-top: 10px; }
-
-.icon-btn {
-    background: var(--panel-bg);
-    border: 2px solid #334155;
-    color: white;
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-.status-display {
-    flex-grow: 1;
-    background: #000;
-    border-radius: 12px;
-    border: 2px solid var(--neon-blue);
-    color: var(--neon-yellow);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-}
-
-.menu-btn {
-    background: var(--neon-pink);
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 50px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 0 15px var(--neon-pink);
-}
-
-.stats-footer { display: flex; justify-content: space-between; color: #64748b; font-size: 0.8rem; margin-top: 5px; }
+// Bind Buttons
+document.getElementById("startBtn").addEventListener("click", startGame);
+document.getElementById("pauseBtn").addEventListener("click", togglePause);
+document.getElementById("resumeBtn").addEventListener("click", togglePause);
+document.getElementById("resetBtn").addEventListener("click", () => location.reload());
+document.getElementById("exitBtn").addEventListener("click", () => location.reload());

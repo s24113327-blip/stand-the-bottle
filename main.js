@@ -26,7 +26,6 @@ const gameState = {
     baseVelocity: 0
 };
 
-// --- Core Initialization ---
 function init() {
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0) return; 
@@ -41,7 +40,6 @@ function init() {
     
     document.getElementById("bestScore").textContent = gameState.bestScore;
     updateRingPosition();
-    console.log("Game dimensions initialized: ", canvas.width, "x", canvas.height);
 }
 
 function updateRingPosition() {
@@ -50,7 +48,6 @@ function updateRingPosition() {
     gameState.ringY = gameState.bottleBaseY + Math.sin(gameState.bottleAngle) * totalLength;
 }
 
-// --- Physics Logic ---
 function updatePhysics() {
     if (gameState.hasWon) return;
 
@@ -74,10 +71,9 @@ function updatePhysics() {
 
 function checkWinCondition() {
     if (gameState.hasWon) return;
-    // Win logic: Bottle must be nearly 90 degrees vertical and base must be still
     if (gameState.bottleAngle <= -Math.PI / 2 * 0.97 && Math.abs(gameState.baseVelocity) < 0.3) {
         gameState.hasWon = true;
-        gameState.score += 100 * gameState.level;
+        gameState.score += 100;
         document.getElementById("score").textContent = gameState.score;
         document.getElementById("status").textContent = "立起來了! 🎉";
         
@@ -85,19 +81,16 @@ function checkWinCondition() {
             gameState.hasWon = false;
             gameState.bottleAngle = 0;
             gameState.level++;
-            gameState.friction = Math.max(0.4, gameState.friction - 0.08);
             document.getElementById("level").textContent = gameState.level;
-            document.getElementById("frictionVal").textContent = gameState.friction.toFixed(2);
             document.getElementById("status").textContent = "Level " + gameState.level;
         }, 2000);
     }
 }
 
-// --- Rendering ---
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // 1. Table
+    // Draw Ground
     ctx.strokeStyle = "#00f3ff";
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -105,7 +98,7 @@ function drawGame() {
     ctx.lineTo(canvas.width, gameState.bottleBaseY + 2);
     ctx.stroke();
 
-    // 2. Rope
+    // Draw Rope
     ctx.strokeStyle = "#ffee00";
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -117,19 +110,19 @@ function drawGame() {
     );
     ctx.stroke();
 
-    // 3. Bottle
+    // Draw Bottle
     ctx.save();
     const wobbleX = Math.sin(Date.now() * 0.05) * gameState.bottleWobble;
     ctx.translate(gameState.bottleBaseX + wobbleX, gameState.bottleBaseY);
     ctx.rotate(gameState.bottleAngle);
-    ctx.fillStyle = "#10b981"; // Green bottle
+    ctx.fillStyle = "#10b981"; 
     ctx.fillRect(0, -21, 135, 42); 
     ctx.fillRect(135, -9, 35, 18); 
-    ctx.fillStyle = "#ff0033"; // Red cap
+    ctx.fillStyle = "#ff0033"; 
     ctx.fillRect(170, -11, 8, 22);  
     ctx.restore();
 
-    // 4. Ring
+    // Draw Ring
     ctx.strokeStyle = "#ff007f";
     ctx.lineWidth = 6;
     ctx.beginPath();
@@ -137,25 +130,21 @@ function drawGame() {
     ctx.stroke();
 }
 
-// --- UI Interaction ---
-function handleStart() {
-    console.log("Start button clicked");
+// Logic to start and pause
+const startGame = () => {
     const overlay = document.getElementById("tutorialOverlay");
     if (overlay) overlay.style.display = "none";
     gameState.paused = false;
-    init(); // Recalculate size when overlay disappears
-}
+    init();
+};
 
-function handlePause() {
+const togglePause = () => {
     gameState.paused = !gameState.paused;
     document.getElementById("pauseOverlay").classList.toggle("hidden");
-}
+};
 
-// --- Initialization & Loop ---
-window.addEventListener("load", () => {
-    init();
-    
-    // Core Game Loop
+// Start the animation loop
+function startLoop() {
     const loop = () => {
         if (!gameState.paused) {
             updatePhysics();
@@ -165,25 +154,30 @@ window.addEventListener("load", () => {
         requestAnimationFrame(loop);
     };
     loop();
+}
 
-    // Bind events here to ensure buttons exist
-    const startBtn = document.getElementById("startBtn");
-    if(startBtn) startBtn.addEventListener("click", handleStart);
+// Initialization and Event Binding
+window.addEventListener("load", () => {
+    init();
+    startLoop();
+
+    // Bind Start Button
+    const sBtn = document.getElementById("startBtn");
+    if (sBtn) sBtn.onclick = startGame;
+
+    // Bind Pause/Resume
+    const pBtn = document.getElementById("pauseBtn");
+    if (pBtn) pBtn.onclick = togglePause;
     
-    const pauseBtn = document.getElementById("pauseBtn");
-    if(pauseBtn) pauseBtn.addEventListener("click", handlePause);
+    const rBtn = document.getElementById("resumeBtn");
+    if (rBtn) rBtn.onclick = togglePause;
 
-    const resumeBtn = document.getElementById("resumeBtn");
-    if(resumeBtn) resumeBtn.addEventListener("click", handlePause);
-
-    const resetBtn = document.getElementById("resetBtn");
-    if(resetBtn) resetBtn.addEventListener("click", () => location.reload());
-    
-    const exitBtn = document.getElementById("exitBtn");
-    if(exitBtn) exitBtn.addEventListener("click", () => location.reload());
+    // Bind Reset
+    const reBtn = document.getElementById("resetBtn");
+    if (reBtn) reBtn.onclick = () => location.reload();
 });
 
-// --- Mouse/Touch Events ---
+// Controls
 canvas.addEventListener("mousedown", (e) => {
     if (gameState.paused || gameState.hasWon) return;
     const rect = canvas.getBoundingClientRect();
@@ -209,7 +203,6 @@ window.addEventListener("mousemove", (e) => {
     const dy = my - gameState.bottleBaseY;
     gameState.bottleAngle = Math.max(-Math.PI / 2, Math.min(Math.atan2(dy, dx), 0));
 
-    // Tension Slip Logic
     if (Math.abs(mx - gameState.ringX) > 40) {
         gameState.baseVelocity += (mx > gameState.bottleBaseX ? 1 : -1) * (1.1 - gameState.friction);
     }

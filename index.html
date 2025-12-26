@@ -10,33 +10,19 @@
     <div id="tutorialOverlay" class="overlay">
         <div class="modal">
             <h2>🏮 夜市立瓶子 🏮</h2>
-            <h3>Night Market Challenge</h3>
-            <p>Can you master the center of gravity? Standing a bottle with just a ring is a classic skill game in Taiwan's night markets.</p>
-            <ul class="how-to-list">
-                <li>🎯 <strong>Hook:</strong> Click the pink ring to grab it.</li>
-                <li>⬆️ <strong>Lift:</strong> Pull the ring upward slowly.</li>
-                <li>⚠️ <strong>Caution:</strong> Pulling too fast makes the base slide!</li>
-                <li>🏆 <strong>Win:</strong> Make the bottle stand perfectly vertical.</li>
-            </ul>
+            <p>Stand the bottle using the ring!</p>
             <button id="startBtn" class="menu-btn">START GAME</button>
         </div>
     </div>
 
     <div id="pauseOverlay" class="overlay hidden">
         <div class="modal">
-            <h2>GAME PAUSED</h2>
+            <h2>PAUSED</h2>
             <button id="resumeBtn" class="menu-btn">RESUME</button>
-            <button id="exitBtn" class="menu-btn exit">EXIT TO MENU</button>
         </div>
     </div>
 
     <div class="game-container">
-        <div class="top-bar">
-            <div class="score-box">Points: <span id="score">0</span></div>
-            <div class="score-box level-tag">Lv: <span id="level">1</span></div>
-            <div class="score-box">Best: <span id="bestScore">0</span></div>
-        </div>
-
         <div class="header">
             <h1>夜市立瓶子</h1>
             <p class="subtitle">BOTTLE STAND CHALLENGE</p>
@@ -44,19 +30,15 @@
         
         <div class="game-board">
             <canvas id="gameCanvas"></canvas>
-            
             <div class="controls">
                 <button id="pauseBtn" class="icon-btn">⏸</button>
-                <div class="status-display">
-                    <span id="status">Stand the bottle!</span>
-                </div>
+                <div class="status-display"><span id="status">Ready?</span></div>
                 <button id="resetBtn" class="icon-btn">🔄</button>
             </div>
         </div>
 
         <div class="stats-footer">
             <span>Attempts: <span id="attempts">0</span></span>
-            <span>Surface Grip: <span id="frictionVal">0.85</span></span>
         </div>
     </div>
 

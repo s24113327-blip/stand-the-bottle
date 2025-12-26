@@ -1,14 +1,12 @@
-// --- Canvas Setup ---
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const gameState = {
-    paused: true, 
+    paused: true,
     level: 1,
     score: 0,
     bestScore: localStorage.getItem("bestScore") || 0,
     attempts: 0,
-    
     bottleAngle: 0,
     bottleBaseX: 0,
     originalBaseX: 0,
@@ -18,11 +16,9 @@ const gameState = {
     ringX: 0,
     ringY: 0,
     ringRadius: 22,
-    
     isDragging: false,
     hasWon: false,
-    friction: 0.85, 
-    
+    friction: 0.85,
     ropeSwing: 0,
     ropeVelocity: 0,
     bottleWobble: 0,
@@ -30,10 +26,11 @@ const gameState = {
     baseVelocity: 0
 };
 
-// --- Initialization ---
+// --- Core Initialization ---
 function init() {
-    // This ensures the canvas resolution matches the CSS display size on GitHub
     const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0) return; 
+
     canvas.width = rect.width;
     canvas.height = rect.height;
     
@@ -44,6 +41,7 @@ function init() {
     
     document.getElementById("bestScore").textContent = gameState.bestScore;
     updateRingPosition();
+    console.log("Game dimensions initialized: ", canvas.width, "x", canvas.height);
 }
 
 function updateRingPosition() {
@@ -52,16 +50,7 @@ function updateRingPosition() {
     gameState.ringY = gameState.bottleBaseY + Math.sin(gameState.bottleAngle) * totalLength;
 }
 
-// --- Main Game Loop ---
-function gameLoop() {
-    if (!gameState.paused) {
-        updatePhysics();
-        checkWinCondition();
-    }
-    drawGame();
-    requestAnimationFrame(gameLoop);
-}
-
+// --- Physics Logic ---
 function updatePhysics() {
     if (gameState.hasWon) return;
 
@@ -74,7 +63,6 @@ function updatePhysics() {
         gameState.baseVelocity += (gameState.originalBaseX - gameState.bottleBaseX) * 0.05;
         gameState.baseVelocity *= 0.8;
         gameState.bottleBaseX += gameState.baseVelocity;
-        
         if (gameState.bottleAngle < 0) gameState.bottleAngle += 0.05;
         if (gameState.bottleAngle > 0) gameState.bottleAngle = 0;
     } else {
@@ -86,55 +74,38 @@ function updatePhysics() {
 
 function checkWinCondition() {
     if (gameState.hasWon) return;
-    if (gameState.bottleAngle <= -Math.PI / 2 * 0.97) {
-        if (Math.abs(gameState.baseVelocity) < 0.3) {
-            handleWin();
-        }
-    }
-}
-
-function handleWin() {
-    gameState.hasWon = true;
-    gameState.isDragging = false;
-    gameState.score += 100 * gameState.level;
-    
-    document.getElementById("score").textContent = gameState.score;
-    document.getElementById("status").textContent = "立起來了! 🎉";
-
-    if (gameState.score > gameState.bestScore) {
-        gameState.bestScore = gameState.score;
-        localStorage.setItem("bestScore", gameState.bestScore);
-        document.getElementById("bestScore").textContent = gameState.bestScore;
-    }
-
-    setTimeout(() => {
-        gameState.level++;
-        gameState.friction = Math.max(0.4, gameState.friction - 0.08);
-        document.getElementById("level").textContent = gameState.level;
-        document.getElementById("frictionVal").textContent = gameState.friction.toFixed(2);
+    // Win logic: Bottle must be nearly 90 degrees vertical and base must be still
+    if (gameState.bottleAngle <= -Math.PI / 2 * 0.97 && Math.abs(gameState.baseVelocity) < 0.3) {
+        gameState.hasWon = true;
+        gameState.score += 100 * gameState.level;
+        document.getElementById("score").textContent = gameState.score;
+        document.getElementById("status").textContent = "立起來了! 🎉";
         
-        gameState.hasWon = false;
-        gameState.bottleAngle = 0;
-        gameState.bottleBaseX = gameState.originalBaseX;
-        document.getElementById("status").textContent = "Level " + gameState.level;
-    }, 2000);
+        setTimeout(() => {
+            gameState.hasWon = false;
+            gameState.bottleAngle = 0;
+            gameState.level++;
+            gameState.friction = Math.max(0.4, gameState.friction - 0.08);
+            document.getElementById("level").textContent = gameState.level;
+            document.getElementById("frictionVal").textContent = gameState.friction.toFixed(2);
+            document.getElementById("status").textContent = "Level " + gameState.level;
+        }, 2000);
+    }
 }
 
+// --- Rendering ---
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // 1. Draw Table
+    // 1. Table
     ctx.strokeStyle = "#00f3ff";
     ctx.lineWidth = 4;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = "#00f3ff";
     ctx.beginPath();
     ctx.moveTo(0, gameState.bottleBaseY + 2);
     ctx.lineTo(canvas.width, gameState.bottleBaseY + 2);
     ctx.stroke();
-    ctx.shadowBlur = 0;
 
-    // 2. Draw Rope
+    // 2. Rope
     ctx.strokeStyle = "#ffee00";
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -146,49 +117,73 @@ function drawGame() {
     );
     ctx.stroke();
 
-    // 3. Draw Bottle
+    // 3. Bottle
     ctx.save();
     const wobbleX = Math.sin(Date.now() * 0.05) * gameState.bottleWobble;
     ctx.translate(gameState.bottleBaseX + wobbleX, gameState.bottleBaseY);
     ctx.rotate(gameState.bottleAngle);
-    ctx.fillStyle = "#10b981";
+    ctx.fillStyle = "#10b981"; // Green bottle
     ctx.fillRect(0, -21, 135, 42); 
     ctx.fillRect(135, -9, 35, 18); 
-    ctx.fillStyle = "#ff0033";
+    ctx.fillStyle = "#ff0033"; // Red cap
     ctx.fillRect(170, -11, 8, 22);  
     ctx.restore();
 
-    // 4. Draw Ring
+    // 4. Ring
     ctx.strokeStyle = "#ff007f";
     ctx.lineWidth = 6;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "#ff007f";
     ctx.beginPath();
     ctx.arc(gameState.ringX, gameState.ringY, gameState.ringRadius, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.shadowBlur = 0;
 }
 
-// --- Interaction & UI Functions ---
-window.startGame = function() {
-    document.getElementById("tutorialOverlay").style.display = "none";
+// --- UI Interaction ---
+function handleStart() {
+    console.log("Start button clicked");
+    const overlay = document.getElementById("tutorialOverlay");
+    if (overlay) overlay.style.display = "none";
     gameState.paused = false;
-    init();
-};
+    init(); // Recalculate size when overlay disappears
+}
 
-window.togglePause = function() {
+function handlePause() {
     gameState.paused = !gameState.paused;
     document.getElementById("pauseOverlay").classList.toggle("hidden");
-};
+}
 
-window.exitGame = function() {
-    location.reload();
-};
+// --- Initialization & Loop ---
+window.addEventListener("load", () => {
+    init();
+    
+    // Core Game Loop
+    const loop = () => {
+        if (!gameState.paused) {
+            updatePhysics();
+            checkWinCondition();
+        }
+        drawGame();
+        requestAnimationFrame(loop);
+    };
+    loop();
 
-// Handle Window Resizing (Crucial for GitHub Pages)
-window.addEventListener("resize", init);
+    // Bind events here to ensure buttons exist
+    const startBtn = document.getElementById("startBtn");
+    if(startBtn) startBtn.addEventListener("click", handleStart);
+    
+    const pauseBtn = document.getElementById("pauseBtn");
+    if(pauseBtn) pauseBtn.addEventListener("click", handlePause);
 
-// Input Handling
+    const resumeBtn = document.getElementById("resumeBtn");
+    if(resumeBtn) resumeBtn.addEventListener("click", handlePause);
+
+    const resetBtn = document.getElementById("resetBtn");
+    if(resetBtn) resetBtn.addEventListener("click", () => location.reload());
+    
+    const exitBtn = document.getElementById("exitBtn");
+    if(exitBtn) exitBtn.addEventListener("click", () => location.reload());
+});
+
+// --- Mouse/Touch Events ---
 canvas.addEventListener("mousedown", (e) => {
     if (gameState.paused || gameState.hasWon) return;
     const rect = canvas.getBoundingClientRect();
@@ -201,22 +196,21 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 window.addEventListener("mousemove", (e) => {
-    if (!gameState.isDragging || gameState.hasWon || gameState.paused) return;
+    if (!gameState.isDragging || gameState.paused) return;
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
-
+    
     const speed = mx - gameState.lastMouseX;
     gameState.ropeVelocity += speed * 0.15;
     if (Math.abs(speed) > 10) gameState.bottleWobble = Math.abs(speed) * 0.4;
 
     const dx = mx - gameState.bottleBaseX;
     const dy = my - gameState.bottleBaseY;
-    let angle = Math.atan2(dy, dx);
-    gameState.bottleAngle = Math.max(-Math.PI / 2, Math.min(angle, 0));
+    gameState.bottleAngle = Math.max(-Math.PI / 2, Math.min(Math.atan2(dy, dx), 0));
 
-    const pull = Math.abs(mx - gameState.ringX);
-    if (pull > 40) {
+    // Tension Slip Logic
+    if (Math.abs(mx - gameState.ringX) > 40) {
         gameState.baseVelocity += (mx > gameState.bottleBaseX ? 1 : -1) * (1.1 - gameState.friction);
     }
     gameState.lastMouseX = mx;
@@ -229,13 +223,3 @@ window.addEventListener("mouseup", () => {
         document.getElementById("attempts").textContent = gameState.attempts;
     }
 });
-
-// Setup Game Execution
-window.addEventListener("load", () => {
-    init();
-    gameLoop();
-});
-
-// Explicitly bind Pause and Reset buttons
-document.getElementById("pauseBtn").addEventListener("click", togglePause);
-document.getElementById("resetBtn").addEventListener("click", () => location.reload());

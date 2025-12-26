@@ -1,193 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stand the Bottle - Night Market Game</title>
-  <style>
-    body {
-      margin: 0;
-      background: linear-gradient(#0b001a, #240046);
-      overflow: hidden;
-      font-family: "Trebuchet MS", sans-serif;
-    }
-
-    /* Night market lanterns */
-    .lantern {
-      position: absolute;
-      width: 70px;
-      height: 90px;
-      background: radial-gradient(circle, #ff4d6d, #c9184a);
-      border-radius: 50% 50% 40% 40%;
-      top: 20px;
-      animation: swing 3s ease-in-out infinite;
-      box-shadow: 0 0 20px #ff4d6d;
-    }
-
-    .lantern:before {
-      content: "";
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 6px;
-      height: 20px;
-      background: #ffccd5;
-    }
-
-    .lantern:nth-child(1) { left: 10%; animation-delay: 0s; }
-    .lantern:nth-child(2) { left: 40%; animation-delay: 1s; }
-    .lantern:nth-child(3) { left: 70%; animation-delay: 2s; }
-
-    @keyframes swing {
-      0% { transform: rotate(2deg); }
-      50% { transform: rotate(-2deg); }
-      100% { transform: rotate(2deg); }
-    }
-
-    #gameCanvas {
-      display: block;
-      margin: 0 auto;
-      background: url('https://i.imgur.com/7F0V8bU.jpeg'); /* night market bg */
-      background-size: cover;
-      border-top: 4px solid #ffb3c1;
-    }
-
-    #message {
-      position: absolute;
-      top: 20%;
-      width: 100%;
-      text-align: center;
-      color: #ffe6f2;
-      font-size: 48px;
-      font-weight: bold;
-      text-shadow: 0 0 12px #ff4d6d;
-      display: none;
-      animation: pop 0.6s ease-out;
-    }
-
-    @keyframes pop {
-      0% { transform: scale(0.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taiwan Night Market: Bottle Stand</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div id="tutorialOverlay" class="overlay">
+        <div class="modal">
+            <h2>🏮 夜市立瓶子 🏮</h2>
+            <h3>Night Market Challenge</h3>
+            <p>Can you master the center of gravity? Standing a bottle with just a ring is a classic skill game in Taiwan's night markets.</p>
+            <ul class="how-to-list">
+                <li>🎯 <strong>Hook:</strong> Click the pink ring to grab it.</li>
+                <li>⬆️ <strong>Lift:</strong> Pull the ring upward slowly.</li>
+                <li>⚠️ <strong>Caution:</strong> Pulling too fast makes the base slide!</li>
+                <li>🏆 <strong>Win:</strong> Make the bottle stand perfectly vertical.</li>
+            </ul>
+            <button onclick="startGame()" class="menu-btn">START GAME</button>
+        </div>
+    </div>
 
-<div class="lantern"></div>
-<div class="lantern"></div>
-<div class="lantern"></div>
-<div id="message">You Did It! 🎉</div>
+    <div id="pauseOverlay" class="overlay hidden">
+        <div class="modal">
+            <h2>GAME PAUSED</h2>
+            <button onclick="togglePause()" class="menu-btn">RESUME</button>
+            <button onclick="exitGame()" class="menu-btn exit">EXIT TO MENU</button>
+        </div>
+    </div>
 
-<canvas id="gameCanvas" width="900" height="600"></canvas>
+    <div class="game-container">
+        <div class="top-bar">
+            <div class="score-box">Points: <span id="score">0</span></div>
+            <div class="score-box level-tag">Lv: <span id="level">1</span></div>
+            <div class="score-box">Best: <span id="bestScore">0</span></div>
+        </div>
 
-<script>
-  const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
+        <div class="header">
+            <h1>夜市立瓶子</h1>
+            <p class="subtitle">BOTTLE STAND CHALLENGE</p>
+        </div>
+        
+        <div class="game-board">
+            <canvas id="gameCanvas"></canvas>
+            
+            <div class="controls">
+                <button id="pauseBtn" class="icon-btn">⏸</button>
+                <div class="status-display">
+                    <span id="status">Stand the bottle!</span>
+                </div>
+                <button id="resetBtn" class="icon-btn">🔄</button>
+            </div>
+        </div>
 
-  // Bottle object
-  const bottle = {
-    x: canvas.width / 2 - 20,
-    y: canvas.height - 120,
-    width: 40,
-    height: 100,
-    angle: 0,
-    standing: false,
-  };
+        <div class="stats-footer">
+            <span>Attempts: <span id="attempts">0</span></span>
+            <span>Surface Grip: <span id="frictionVal">0.85</span></span>
+        </div>
+    </div>
 
-  // Rope + Ring
-  const rope = {
-    startX: canvas.width / 2,
-    startY: 50,
-    length: 230,
-  };
-
-  let ringX = rope.startX;
-  let ringY = rope.startY + rope.length;
-  let isDragging = false;
-
-  // Mouse interaction
-  canvas.addEventListener("mousedown", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-
-    const dist = Math.hypot(mx - ringX, my - ringY);
-    if (dist < 30) isDragging = true;
-  });
-
-  canvas.addEventListener("mouseup", () => {
-    isDragging = false;
-  });
-
-  canvas.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-
-    const dx = mx - rope.startX;
-    const dy = my - rope.startY;
-    const distance = Math.hypot(dx, dy);
-
-    if (distance < rope.length) {
-      ringX = mx;
-      ringY = my;
-    }
-  });
-
-  function drawBottle() {
-    ctx.save();
-    ctx.translate(bottle.x + bottle.width / 2, bottle.y + bottle.height / 2);
-    ctx.rotate(bottle.angle);
-    ctx.fillStyle = "#d4e2ff";
-    ctx.fillRect(-bottle.width / 2, -bottle.height / 2, bottle.width, bottle.height);
-    ctx.restore();
-  }
-
-  function drawRing() {
-    ctx.beginPath();
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = "#ffccd5";
-    ctx.moveTo(rope.startX, rope.startY);
-    ctx.lineTo(ringX, ringY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(ringX, ringY, 25, 0, Math.PI * 2);
-    ctx.strokeStyle = "#ff4d6d";
-    ctx.lineWidth = 6;
-    ctx.stroke();
-  }
-
-  function checkWin() {
-    if (
-      Math.abs(ringX - (bottle.x + bottle.width / 2)) < 20 &&
-      Math.abs(ringY - bottle.y) < 20
-    ) {
-      bottle.angle -= 0.02;
-
-      if (Math.abs(bottle.angle) < 0.01) {
-        bottle.angle = 0;
-        bottle.standing = true;
-        document.getElementById("message").style.display = "block";
-      }
-    }
-  }
-
-  function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    drawBottle();
-    drawRing();
-
-    if (!bottle.standing) checkWin();
-
-    requestAnimationFrame(gameLoop);
-  }
-
-  gameLoop();
-</script>
-
+    <script src="game.js"></script>
 </body>
 </html>

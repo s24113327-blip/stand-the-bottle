@@ -1,0 +1,215 @@
+:root {
+    --neon-pink: #ff007f;
+    --neon-blue: #00f3ff;
+    --neon-yellow: #ffee00;
+    --neon-red: #ff0033;
+    --bg-dark: #020617;
+    --panel-bg: #0f172a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: white;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Overlays & Modals */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden { display: none !important; }
+
+.modal {
+    background: var(--panel-bg);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 3px solid var(--neon-pink);
+    box-shadow: 0 0 30px var(--neon-pink);
+    text-align: center;
+    max-width: 450px;
+    width: 90%;
+}
+
+.modal h2 { color: var(--neon-yellow); font-size: 2.2rem; margin-bottom: 0.5rem; }
+.modal h3 { color: var(--neon-blue); margin-bottom: 1.5rem; letter-spacing: 2px; }
+
+.how-to-list {
+    text-align: left;
+    margin: 1.5rem 0;
+    list-style: none;
+    color: #cbd5e1;
+}
+
+.how-to-list li {
+    margin-bottom: 10px;
+    padding-left: 25px;
+    position: relative;
+}
+
+.how-to-list li::before {
+    content: "🏮";
+    position: absolute;
+    left: 0;
+}
+
+/* UI Structure */
+.game-container {
+    width: 95%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+}
+
+.score-box {
+    background: var(--panel-bg);
+    padding: 8px 15px;
+    border-radius: 10px;
+    border-bottom: 3px solid var(--neon-blue);
+    font-weight: bold;
+    min-width: 100px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 243, 255, 0.2);
+}
+
+.level-tag { border-bottom-color: var(--neon-yellow); color: var(--neon-yellow); }
+
+.header h1 {
+    text-align: center;
+    font-size: 3.5rem;
+    margin: 0;
+    letter-spacing: 4px;
+    color: #fff;
+    text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink);
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--neon-blue);
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin-top: -10px;
+}
+
+/* Canvas Area */
+.game-board {
+    background: #000;
+    border-radius: 20px;
+    padding: 12px;
+    border: 4px solid #334155;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 480px;
+    background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+    border-radius: 12px;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.icon-btn {
+    background: var(--panel-bg);
+    border: 2px solid #334155;
+    color: white;
+    font-size: 1.5rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.icon-btn:hover {
+    border-color: var(--neon-blue);
+    color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+.status-display {
+    flex-grow: 1;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-yellow);
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+.menu-btn {
+    background: var(--neon-pink);
+    color: white;
+    border: none;
+    padding: 15px 35px;
+    border-radius: 50px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 20px var(--neon-pink);
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+.menu-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 35px var(--neon-pink);
+}
+
+.menu-btn.exit {
+    background: #475569;
+    box-shadow: none;
+    font-size: 1rem;
+}
+
+.stats-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 500px) {
+    .header h1 { font-size: 2.5rem; }
+    #gameCanvas { height: 380px; }
+    .top-bar { font-size: 0.8rem; }
+}
